@@ -110,7 +110,7 @@ export default function HomeTab() {
     isOnboardingComplete,
     householdId,
     setHouseholdId,
-    setHouseholdProfile,
+    // setHouseholdProfile,
     setActiveTab,
     resetAppState
   } = useAppContext()
@@ -140,7 +140,7 @@ export default function HomeTab() {
     }
   }
 
-  const handleWeeklyPlanningComplete = (weeklyContext: any) => {
+  const handleWeeklyPlanningComplete = () => {
     setShowChat(false)
     // Auto-transition to meal plan tab
     setTimeout(() => {

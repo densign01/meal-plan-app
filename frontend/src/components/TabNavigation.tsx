@@ -21,7 +21,7 @@ interface TabButtonProps extends TabData {
   badge?: number
 }
 
-function TabButton({ id, label, icon: Icon, active, onClick, disabled, badge }: TabButtonProps) {
+function TabButton({ label, icon: Icon, active, onClick, disabled, badge }: TabButtonProps) {
   return (
     <button
       onClick={onClick}
@@ -62,7 +62,7 @@ export default function TabNavigation() {
     setActiveTab,
     isOnboardingComplete,
     hasActiveMealPlan,
-    hasActiveGroceryList
+    // hasActiveGroceryList
   } = useAppContext()
 
   const handleTabClick = (tabId: TabType) => {
