@@ -13,13 +13,8 @@ app = FastAPI(title="Meal Plan API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # Local development
-        "https://meal-plan-app-three.vercel.app",  # Production Vercel
-        "https://*.vercel.app",  # All Vercel deployments
-        "*"  # Allow all for now
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins for now
+    allow_credentials=False,  # Must be False when using "*"
     allow_methods=["*"],
     allow_headers=["*"],
 )
