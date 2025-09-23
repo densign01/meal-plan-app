@@ -1,0 +1,146 @@
+from openai import OpenAI
+import json
+import os
+from typing import List, Dict, Any
+from models import HouseholdProfile, HouseholdMember, CookingSkill, DietaryRestriction
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+ONBOARDING_SYSTEM_PROMPT = """
+You are a helpful assistant for a meal planning app. Conduct a QUICK 4-question onboarding to learn the essentials about the user's household and cooking preferences.
+
+Ask only these 4 key questions (combine related info):
+1. "Tell me about your household - how many people, their names, ages for any children (we only need ages for kids), and any dietary restrictions?"
+2. "What's your cooking situation? (skill level: beginner/intermediate/advanced, max time per meal)"
+3. "What foods do you love and hate? (favorite cuisines, specific dislikes)"
+4. "Any special kitchen equipment? (slow cooker, air fryer, etc. or just say 'standard kitchen')"
+
+Be conversational but efficient. Don't ask follow-ups unless critical info is missing. Once you have answers to all 4 areas, respond with "PROFILE_COMPLETE" followed by a JSON summary.
+
+The JSON should match this structure:
+{
+  "members": [{"name": "string", "age": int, "is_adult": bool, "dietary_restrictions": []}],
+  "cooking_skill": "beginner|intermediate|advanced",
+  "max_cooking_time": int,
+  "favorite_cuisines": [],
+  "dislikes": [],
+  "kitchen_equipment": []
+}
+"""
+
+WEEKLY_PLANNING_SYSTEM_PROMPT = """
+You are helping a user quickly describe their upcoming week for meal planning. Ask ONE focused question:
+
+"Tell me about your upcoming week - any busy days, special events, or specific meal requests?"
+
+If they say "nothing special" or "normal week", immediately respond with "CONTEXT_COMPLETE" and a simple JSON summary. Be efficient - don't ask follow-ups unless essential.
+
+Once you have basic info, respond with "CONTEXT_COMPLETE" followed by a JSON summary:
+{
+  "week_description": "string summary",
+  "special_events": ["event1", "event2"],
+  "time_constraints": ["Monday: very busy", "Wednesday: quick meal needed"]
+}
+"""
+
+async def process_chat_message(
+    message: str,
+    chat_history: List[Dict[str, str]],
+    chat_type: str = "onboarding"
+) -> Dict[str, Any]:
+    """Process a chat message and return response with any extracted data"""
+
+    system_prompt = ONBOARDING_SYSTEM_PROMPT if chat_type == "onboarding" else WEEKLY_PLANNING_SYSTEM_PROMPT
+
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(chat_history)
+    messages.append({"role": "user", "content": message})
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",  # Using gpt-4o-mini as specified in tech stack
+        messages=messages,
+        max_tokens=500,
+        temperature=0.7
+    )
+
+    assistant_message = response.choices[0].message.content
+
+    result = {
+        "message": assistant_message,
+        "completed": False,
+        "extracted_data": None
+    }
+
+    # Check if profile/context is complete
+    if chat_type == "onboarding" and "PROFILE_COMPLETE" in assistant_message:
+        print(f"PROFILE_COMPLETE detected in message: {assistant_message[:100]}...")
+        try:
+            # Look for JSON in code blocks first (```json ... ```)
+            if "```json" in assistant_message:
+                json_start = assistant_message.index("```json") + 7
+                json_end = assistant_message.index("```", json_start)
+                json_str = assistant_message[json_start:json_end].strip()
+            else:
+                # Fallback to looking for direct JSON
+                json_start = assistant_message.index("{")
+                # Find the matching closing brace
+                brace_count = 0
+                json_end = json_start
+                for i, char in enumerate(assistant_message[json_start:], json_start):
+                    if char == "{":
+                        brace_count += 1
+                    elif char == "}":
+                        brace_count -= 1
+                        if brace_count == 0:
+                            json_end = i + 1
+                            break
+                json_str = assistant_message[json_start:json_end]
+
+            extracted_data = json.loads(json_str)
+            result["completed"] = True
+            result["extracted_data"] = extracted_data
+            # Remove JSON part from message
+            if "```json" in assistant_message:
+                result["message"] = assistant_message[:assistant_message.index("```json")].strip()
+            else:
+                result["message"] = assistant_message[:json_start].strip()
+        except (ValueError, json.JSONDecodeError, IndexError) as e:
+            print(f"JSON extraction failed: {e}")
+            pass
+
+    elif chat_type == "weekly_planning" and "CONTEXT_COMPLETE" in assistant_message:
+        try:
+            # Look for JSON in code blocks first (```json ... ```)
+            if "```json" in assistant_message:
+                json_start = assistant_message.index("```json") + 7
+                json_end = assistant_message.index("```", json_start)
+                json_str = assistant_message[json_start:json_end].strip()
+            else:
+                # Fallback to looking for direct JSON
+                json_start = assistant_message.index("{")
+                # Find the matching closing brace
+                brace_count = 0
+                json_end = json_start
+                for i, char in enumerate(assistant_message[json_start:], json_start):
+                    if char == "{":
+                        brace_count += 1
+                    elif char == "}":
+                        brace_count -= 1
+                        if brace_count == 0:
+                            json_end = i + 1
+                            break
+                json_str = assistant_message[json_start:json_end]
+
+            extracted_data = json.loads(json_str)
+            result["completed"] = True
+            result["extracted_data"] = extracted_data
+            # Remove JSON part from message
+            if "```json" in assistant_message:
+                result["message"] = assistant_message[:assistant_message.index("```json")].strip()
+            else:
+                result["message"] = assistant_message[:json_start].strip()
+        except (ValueError, json.JSONDecodeError, IndexError) as e:
+            print(f"JSON extraction failed: {e}")
+            pass
+
+    return result
