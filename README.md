@@ -181,3 +181,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **🤖 Generated with [Claude Code](https://claude.ai/code)**
+
+*Backend deployed on Railway, Frontend on Vercel*
