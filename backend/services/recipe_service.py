@@ -2,7 +2,6 @@ from openai import OpenAI
 import json
 import os
 from typing import Dict, List, Any, Optional
-import requests
 from datetime import datetime
 import uuid
 
