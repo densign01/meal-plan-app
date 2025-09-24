@@ -11,6 +11,9 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 class ChatMessage(BaseModel):
     message: str
 
+class WeeklyPlanningStartRequest(BaseModel):
+    household_id: str
+
 class ChatResponse(BaseModel):
     message: str
     session_id: str
@@ -108,12 +111,12 @@ async def continue_onboarding(session_id: str, chat_message: ChatMessage):
     )
 
 @router.post("/weekly-planning/start")
-async def start_weekly_planning(household_id: str):
+async def start_weekly_planning(request: WeeklyPlanningStartRequest):
     """Start a new weekly planning chat session"""
     supabase = get_supabase_client()
 
     # Verify household exists
-    household_result = supabase.table("household_profiles").select("*").eq("id", household_id).execute()
+    household_result = supabase.table("household_profiles").select("*").eq("id", request.household_id).execute()
     if not household_result.data:
         raise HTTPException(status_code=404, detail="Household profile not found")
 
@@ -123,7 +126,7 @@ async def start_weekly_planning(household_id: str):
     result = supabase.table("chat_sessions").insert({
         "id": session_id,
         "session_type": "weekly_planning",
-        "household_id": household_id,
+        "household_id": request.household_id,
         "messages": [],
         "completed": False
     }).execute()
