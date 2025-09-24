@@ -78,4 +78,68 @@ export class MealPlanAPI {
     const response = await api.get(`/grocery/meal-plan/${mealPlanId}`)
     return response.data
   }
+
+  // Recipe Agent endpoints
+  static async developRecipe(requirements: {
+    meal_type: string
+    cuisine?: string
+    dietary_restrictions?: string[]
+    max_cooking_time?: number
+    skill_level?: string
+    servings?: number
+    special_requests?: string
+    household_context?: any
+  }) {
+    const response = await api.post('/recipes/develop', requirements)
+    return response.data
+  }
+
+  static async adaptRecipe(adaptationData: {
+    original_recipe: any
+    adaptation_requirements: any
+    household_context?: any
+  }) {
+    const response = await api.post('/recipes/adapt', adaptationData)
+    return response.data
+  }
+
+  static async getRecipeForMealSlot(data: {
+    meal_type: string
+    cuisine: string
+    household_profile: any
+    special_requirements?: any
+  }) {
+    const response = await api.post('/recipes/for-meal-slot', data)
+    return response.data
+  }
+
+  static async findRecipeByCriteria(criteria: {
+    meal_type: string
+    cuisine: string
+    household_id: string
+    dietary_restrictions?: string
+    max_cooking_time?: number
+    skill_level?: string
+    servings?: number
+    special_requests?: string
+  }) {
+    const response = await api.post('/recipes/find-by-criteria', null, { params: criteria })
+    return response.data
+  }
+
+  static async searchRecipes(query: string, filters?: {
+    dietary_filters?: string
+    cuisine?: string
+    max_time?: number
+  }) {
+    const response = await api.get('/recipes/search', {
+      params: { query, ...filters }
+    })
+    return response.data
+  }
+
+  static async getRecipeServiceHealth() {
+    const response = await api.get('/recipes/health')
+    return response.data
+  }
 }
