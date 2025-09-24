@@ -98,12 +98,8 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
     }
   }, [householdId, householdProfile])
 
-  // Smart tab switching based on app state
-  useEffect(() => {
-    if (!isOnboardingComplete && activeTab !== 'home') {
-      setActiveTab('home')
-    }
-  }, [isOnboardingComplete, activeTab])
+  // Allow navigation to all tabs regardless of onboarding status
+  // Individual tabs will handle their own onboarding state display
 
   const hasActiveMealPlan = () => {
     return currentMealPlan !== null

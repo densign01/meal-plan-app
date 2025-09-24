@@ -61,15 +61,12 @@ export default function TabNavigation() {
     activeTab,
     setActiveTab,
     isOnboardingComplete,
-    hasActiveMealPlan,
+    // hasActiveMealPlan,
     // hasActiveGroceryList
   } = useAppContext()
 
   const handleTabClick = (tabId: TabType) => {
-    // Prevent navigation to other tabs if onboarding isn't complete
-    if (!isOnboardingComplete && tabId !== 'home') {
-      return
-    }
+    // All tabs are now always accessible
     setActiveTab(tabId)
   }
 
@@ -86,15 +83,8 @@ export default function TabNavigation() {
     }
   }
 
-  const isTabDisabled = (tabId: TabType): boolean => {
-    if (tabId === 'home') return false
-
-    // Other tabs require completed onboarding
-    if (!isOnboardingComplete) return true
-
-    // Grocery tab requires an active meal plan
-    if (tabId === 'grocery' && !hasActiveMealPlan()) return true
-
+  const isTabDisabled = (): boolean => {
+    // All tabs are now always accessible
     return false
   }
 
@@ -120,7 +110,7 @@ export default function TabNavigation() {
               {...tab}
               active={activeTab === tab.id}
               onClick={() => handleTabClick(tab.id)}
-              disabled={isTabDisabled(tab.id)}
+              disabled={isTabDisabled()}
               badge={getTabBadge(tab.id)}
             />
           ))}

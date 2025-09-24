@@ -1,13 +1,24 @@
 import { useAppContext } from '../../context/AppContext'
+import { ShoppingCart, ArrowLeft } from 'lucide-react'
 
 export default function GroceryTab() {
-  const { currentGroceryList, currentMealPlan, isOnboardingComplete } = useAppContext()
+  const { currentGroceryList, currentMealPlan, isOnboardingComplete, setActiveTab } = useAppContext()
 
   if (!isOnboardingComplete) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Complete Your Profile First</h2>
-        <p className="text-gray-600">Please complete your onboarding in the Home tab to access grocery lists.</p>
+        <div className="max-w-md mx-auto">
+          <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Please finish onboarding first</h2>
+          <p className="text-gray-600 mb-6">Complete your household profile setup to access your personalized grocery list features.</p>
+          <button
+            onClick={() => setActiveTab('home')}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Go to Home</span>
+          </button>
+        </div>
       </div>
     )
   }
