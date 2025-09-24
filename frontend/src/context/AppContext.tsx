@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import type { MealPlan, GroceryList, HouseholdProfile } from '../types'
+import { MealPlanAPI } from '../services/api'
+import { useAuth } from './AuthContext'
 
 export type TabType = 'home' | 'meal-plan' | 'grocery' | 'profile'
 
@@ -40,6 +42,51 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
   const [householdProfile, setHouseholdProfile] = useState<HouseholdProfile | null>(null)
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false)
   const [selectedMealDay, setSelectedMealDay] = useState('monday')
+
+  const { user } = useAuth()
+
+  // Load existing household data when user authenticates
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (user && !householdId && !householdProfile) {
+        try {
+          // For now, we'll assume the household ID is the user ID
+          // In a real app, you'd have a proper relationship between users and households
+          const potentialHouseholdId = user.id
+
+          // Try to fetch existing household profile
+          const profile = await MealPlanAPI.getHouseholdProfile(potentialHouseholdId)
+
+          if (profile) {
+            setHouseholdId(potentialHouseholdId)
+            setHouseholdProfile(profile)
+
+            // Also load their recent meal plans
+            try {
+              const { meal_plans } = await MealPlanAPI.getHouseholdMealPlans(potentialHouseholdId)
+              if (meal_plans.length > 0) {
+                setCurrentMealPlan(meal_plans[0]) // Most recent
+              }
+            } catch (error) {
+              // No meal plans yet, that's okay
+            }
+          }
+        } catch (error) {
+          // User doesn't have a household profile yet, they need onboarding
+          console.log('No existing household profile found, user needs onboarding')
+        }
+      }
+    }
+
+    loadUserData()
+  }, [user, householdId, householdProfile])
+
+  // Clear data when user logs out
+  useEffect(() => {
+    if (!user && (householdId || householdProfile)) {
+      resetAppState()
+    }
+  }, [user, householdId, householdProfile])
 
   // Auto-determine onboarding completion
   useEffect(() => {
