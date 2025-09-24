@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Body, Query
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from database import get_supabase_client
@@ -111,12 +111,23 @@ async def continue_onboarding(session_id: str, chat_message: ChatMessage):
     )
 
 @router.post("/weekly-planning/start")
-async def start_weekly_planning(request: WeeklyPlanningStartRequest):
+async def start_weekly_planning(
+    request: Optional[WeeklyPlanningStartRequest] = Body(default=None),
+    household_id: Optional[str] = Query(default=None)
+):
     """Start a new weekly planning chat session"""
     supabase = get_supabase_client()
 
+    resolved_household_id = household_id or (request.household_id if request else None)
+
+    if household_id and request and request.household_id and household_id != request.household_id:
+        raise HTTPException(status_code=400, detail="Conflicting household_id provided in query and body")
+
+    if not resolved_household_id:
+        raise HTTPException(status_code=422, detail="household_id is required")
+
     # Verify household exists
-    household_result = supabase.table("household_profiles").select("*").eq("id", request.household_id).execute()
+    household_result = supabase.table("household_profiles").select("*").eq("id", resolved_household_id).execute()
     if not household_result.data:
         raise HTTPException(status_code=404, detail="Household profile not found")
 
@@ -126,7 +137,7 @@ async def start_weekly_planning(request: WeeklyPlanningStartRequest):
     result = supabase.table("chat_sessions").insert({
         "id": session_id,
         "session_type": "weekly_planning",
-        "household_id": request.household_id,
+        "household_id": resolved_household_id,
         "messages": [],
         "completed": False
     }).execute()
