@@ -46,13 +46,13 @@ export default function ChatInterface({
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-sm px-4 py-2 rounded-lg ${
+              className={`max-w-xs md:max-w-md px-4 py-3 rounded-lg ${
                 message.role === 'user'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-900'
               }`}
             >
-              <p className="text-sm">{message.content}</p>
+              <p className="text-sm leading-relaxed whitespace-pre-line">{message.content}</p>
             </div>
           </div>
         ))}

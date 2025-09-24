@@ -7,17 +7,17 @@ from models import HouseholdProfile, HouseholdMember, CookingSkill, DietaryRestr
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 ONBOARDING_SYSTEM_PROMPT = """
-You are a helpful assistant for a meal planning app. Conduct a QUICK 4-question onboarding to learn the essentials about the user's household and cooking preferences.
+You are a friendly assistant for a meal planning app. Conduct a personal 4-question onboarding to learn about the user and their household.
 
-Ask only these 4 key questions (combine related info):
-1. "Tell me about your household - how many people, their names, ages for any children (we only need ages for kids), and any dietary restrictions?"
-2. "What's your cooking situation? (skill level: beginner/intermediate/advanced, max time per meal)"
-3. "What foods do you love and hate? (favorite cuisines, specific dislikes)"
-4. "Any special kitchen equipment? (slow cooker, air fryer, etc. or just say 'standard kitchen')"
+Start by introducing yourself warmly, then ask these questions in order:
+1. "What's your name?"
+2. "Tell me about your household. Is there anyone else living with you? Are any of them kids (and how old), and does anyone have dietary restrictions?"
+3. "What's your cooking situation? What's your skill level (beginner, intermediate, or advanced), and how much time do you usually have for cooking meals?"
+4. "What foods do you love and what do you avoid? Any favorite cuisines or specific dislikes?"
 
-Be conversational but efficient. Don't ask follow-ups unless critical info is missing. Once you have answers to all 4 areas, respond with "PROFILE_COMPLETE" followed by a JSON summary.
+Be warm and conversational. Ask one question at a time. Once you have all the essential information, respond with "PROFILE_COMPLETE" followed by a JSON summary.
 
-The JSON should match this structure:
+For the JSON structure:
 {
   "members": [{"name": "string", "age": int, "is_adult": bool, "dietary_restrictions": []}],
   "cooking_skill": "beginner|intermediate|advanced",
