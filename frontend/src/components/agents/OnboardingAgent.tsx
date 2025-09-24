@@ -5,7 +5,7 @@ import type { ChatMessage } from '../../types'
 import ChatInterface from '../shared/ChatInterface'
 
 interface OnboardingAgentProps {
-  onComplete: (householdId: string) => void
+  onComplete: (householdId: string, profileData?: any) => void
   onReset: () => void
 }
 
@@ -56,7 +56,7 @@ export default function OnboardingAgent({ onComplete, onReset }: OnboardingAgent
           ])
           return
         }
-        setTimeout(() => onComplete(householdId), 1000)
+        setTimeout(() => onComplete(householdId, data.extracted_data), 1000)
       }
     },
     onError: (error) => {

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useAppContext } from '../../context/AppContext'
 import { useAuth } from '../../context/AuthContext'
-import { Calendar, User, MessageCircle, Plus } from 'lucide-react'
+import { Calendar, User, MessageCircle, Plus, CheckCircle } from 'lucide-react'
 import OnboardingAgent from '../agents/OnboardingAgent'
 import WeeklyPlanningAgent from '../agents/WeeklyPlanningAgent'
 import AuthModal from '../AuthModal'
 import ErrorBoundary from '../ErrorBoundary'
 
-type ChatMode = 'onboarding' | 'weekly-planning' | 'meal-modification'
+type ChatMode = 'onboarding' | 'onboarding-complete' | 'weekly-planning' | 'meal-modification'
 
 interface QuickActionProps {
   icon: React.ComponentType<{ className?: string }>
@@ -110,7 +110,7 @@ export default function HomeTab() {
     isOnboardingComplete,
     householdId,
     setHouseholdId,
-    // setHouseholdProfile,
+    setHouseholdProfile,
     setActiveTab,
     resetAppState
   } = useAppContext()
@@ -138,22 +138,23 @@ export default function HomeTab() {
     }
   }, [isOnboardingComplete, showChat])
 
-  const handleOnboardingComplete = (newHouseholdId: string) => {
+  const handleOnboardingComplete = (newHouseholdId: string, profileData?: any) => {
     setHouseholdId(newHouseholdId)
-    // The profile will be set by the onboarding agent
-    setShowChat(false)
+
+    // Set the profile data if provided
+    if (profileData) {
+      setHouseholdProfile(profileData)
+    }
+
+    // Show completion message and ask about meal planning
+    setChatMode('onboarding-complete')
+    setShowChat(true)
 
     // Show auth modal if user is not already authenticated
     if (!user) {
       setTimeout(() => {
         setShowAuthModal(true)
-      }, 500)
-    } else {
-      // Auto-transition to weekly planning if already authenticated
-      setTimeout(() => {
-        setChatMode('weekly-planning')
-        setShowChat(true)
-      }, 1000)
+      }, 2000)
     }
   }
 
@@ -168,6 +169,15 @@ export default function HomeTab() {
   const handleStartNewChat = (mode: ChatMode) => {
     setChatMode(mode)
     setShowChat(true)
+  }
+
+  const handleStartMealPlanning = () => {
+    setChatMode('weekly-planning')
+    setShowChat(true)
+  }
+
+  const handleSkipMealPlanning = () => {
+    setShowChat(false)
   }
 
   const handleReset = () => {
@@ -202,9 +212,14 @@ export default function HomeTab() {
         {showChat && (
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-center space-x-2 mb-4">
-              <MessageCircle className="w-5 h-5 text-blue-600" />
+              {chatMode === 'onboarding-complete' ? (
+                <CheckCircle className="w-5 h-5 text-green-600" />
+              ) : (
+                <MessageCircle className="w-5 h-5 text-blue-600" />
+              )}
               <h3 className="text-lg font-semibold text-gray-900">
                 {chatMode === 'onboarding' && 'Profile Setup'}
+                {chatMode === 'onboarding-complete' && 'Setup Complete!'}
                 {chatMode === 'weekly-planning' && 'Weekly Planning'}
                 {chatMode === 'meal-modification' && 'Chat with Assistant'}
               </h3>
@@ -215,6 +230,32 @@ export default function HomeTab() {
                 onComplete={handleOnboardingComplete}
                 onReset={handleReset}
               />
+            )}
+
+            {chatMode === 'onboarding-complete' && (
+              <div className="text-center py-8">
+                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Thanks! Your profile is all set up.
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Your household profile has been saved. Would you like to create your first meal plan?
+                </p>
+                <div className="space-y-3">
+                  <button
+                    onClick={handleStartMealPlanning}
+                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    Yes, let's create a meal plan!
+                  </button>
+                  <button
+                    onClick={handleSkipMealPlanning}
+                    className="w-full px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    Maybe later
+                  </button>
+                </div>
+              </div>
             )}
 
             {chatMode === 'weekly-planning' && householdId && (
