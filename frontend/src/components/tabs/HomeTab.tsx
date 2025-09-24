@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppContext } from '../../context/AppContext'
 import { useAuth } from '../../context/AuthContext'
 import { Calendar, User, MessageCircle, Plus } from 'lucide-react'
@@ -120,6 +120,23 @@ export default function HomeTab() {
   const [chatMode, setChatMode] = useState<ChatMode>('onboarding')
   const [showChat, setShowChat] = useState(!isOnboardingComplete)
   const [showAuthModal, setShowAuthModal] = useState(false)
+
+  // Handle returning user who logs in - skip onboarding if they already have a profile
+  useEffect(() => {
+    if (user && isOnboardingComplete && householdId) {
+      // User just logged in and already has a profile, hide onboarding chat
+      setShowChat(false)
+      setChatMode('meal-modification') // Default to meal modification for returning users
+    }
+  }, [user, isOnboardingComplete, householdId])
+
+  // Update showChat when onboarding completion status changes
+  useEffect(() => {
+    if (!isOnboardingComplete && !showChat) {
+      setShowChat(true)
+      setChatMode('onboarding')
+    }
+  }, [isOnboardingComplete, showChat])
 
   const handleOnboardingComplete = (newHouseholdId: string) => {
     setHouseholdId(newHouseholdId)

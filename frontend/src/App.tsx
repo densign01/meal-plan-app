@@ -57,7 +57,10 @@ function HeaderAuth() {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onSuccess={() => setShowAuthModal(false)}
+        onSuccess={() => {
+          setShowAuthModal(false)
+          // Let AppContext and HomeTab handle the post-login flow
+        }}
       />
     </>
   )

@@ -58,6 +58,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
           const profile = await MealPlanAPI.getHouseholdProfile(potentialHouseholdId)
 
           if (profile) {
+            console.log('Found existing household profile:', profile)
             setHouseholdId(potentialHouseholdId)
             setHouseholdProfile(profile)
 
@@ -73,7 +74,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
           }
         } catch (error) {
           // User doesn't have a household profile yet, they need onboarding
-          console.log('No existing household profile found, user needs onboarding')
+          console.log('No existing household profile found, user needs onboarding:', error)
         }
       }
     }
