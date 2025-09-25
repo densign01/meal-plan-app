@@ -89,6 +89,22 @@ async def continue_onboarding(session_id: str, chat_message: ChatMessage, user_i
             if user_id:
                 result["extracted_data"]["user_id"] = user_id
 
+            # Validate required fields
+            required_fields = ["members", "cooking_skill", "max_cooking_time"]
+            for field in required_fields:
+                if field not in result["extracted_data"]:
+                    print(f"WARNING: Missing required field '{field}' in extracted data")
+
+            # Ensure arrays exist
+            if "favorite_cuisines" not in result["extracted_data"]:
+                result["extracted_data"]["favorite_cuisines"] = []
+            if "dislikes" not in result["extracted_data"]:
+                result["extracted_data"]["dislikes"] = []
+            if "kitchen_equipment" not in result["extracted_data"]:
+                result["extracted_data"]["kitchen_equipment"] = []
+
+            print(f"Attempting to save profile data to Supabase: {result['extracted_data']}")
+
             household_service = HouseholdService()
             household_id = await household_service.create_household_profile(result["extracted_data"])
             update_data["household_id"] = household_id
@@ -96,9 +112,15 @@ async def continue_onboarding(session_id: str, chat_message: ChatMessage, user_i
             # Add household_id to extracted_data for frontend
             result["extracted_data"]["id"] = household_id
 
+            print(f"SUCCESS: Created household profile with ID: {household_id}")
+
         except Exception as e:
-            print(f"Household creation failed: {e}")
-            # Continue without household creation - frontend will use fallback
+            print(f"CRITICAL: Household creation failed: {e}")
+            print(f"Profile data that failed to save: {result['extracted_data']}")
+            import traceback
+            print(f"Full error traceback: {traceback.format_exc()}")
+            # This is a critical error - profile data not saved to Supabase
+            # Consider raising the error instead of continuing silently
 
     supabase.table("chat_sessions").update(update_data).eq("id", session_id).execute()
 
