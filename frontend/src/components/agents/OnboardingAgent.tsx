@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { MealPlanAPI } from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 import type { ChatMessage } from '../../types'
 import ChatInterface from '../shared/ChatInterface'
 
@@ -13,6 +14,7 @@ export default function OnboardingAgent({ onComplete, onReset }: OnboardingAgent
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isCompleted, setIsCompleted] = useState(false)
+  const { user } = useAuth()
 
   // Start onboarding session
   const startMutation = useMutation({
@@ -33,7 +35,7 @@ export default function OnboardingAgent({ onComplete, onReset }: OnboardingAgent
   // Continue onboarding conversation
   const continueMutation = useMutation({
     mutationFn: ({ sessionId, message }: { sessionId: string; message: string }) =>
-      MealPlanAPI.continueOnboarding(sessionId, message),
+      MealPlanAPI.continueOnboarding(sessionId, message, user?.id),
     onSuccess: (data) => {
       setMessages(prev => [
         ...prev,
@@ -56,7 +58,7 @@ export default function OnboardingAgent({ onComplete, onReset }: OnboardingAgent
           ])
           return
         }
-        setTimeout(() => onComplete(householdId, data.extracted_data), 1000)
+        setTimeout(() => onComplete(householdId, data.extracted_data), 3000)
       }
     },
     onError: (error) => {

@@ -1,8 +1,167 @@
+import { useState, useMemo } from 'react'
+import { useDrag, useDrop } from 'react-dnd'
 import { useAppContext } from '../../context/AppContext'
-import { Calendar, ArrowLeft } from 'lucide-react'
+import { Calendar, ArrowLeft, Clock, Users, ChefHat, Edit2, Plus, Trash2 } from 'lucide-react'
+import type { Recipe } from '../../types'
+
+const DAYS = [
+  { key: 'monday', label: 'Monday' },
+  { key: 'tuesday', label: 'Tuesday' },
+  { key: 'wednesday', label: 'Wednesday' },
+  { key: 'thursday', label: 'Thursday' },
+  { key: 'friday', label: 'Friday' },
+  { key: 'saturday', label: 'Saturday' },
+  { key: 'sunday', label: 'Sunday' }
+]
+
+interface DraggableRecipeProps {
+  recipe: Recipe
+  day: string
+  onEdit?: () => void
+  onRemove?: () => void
+}
+
+function DraggableRecipe({ recipe, day, onEdit, onRemove }: DraggableRecipeProps) {
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: 'recipe',
+    item: { recipe, sourceDay: day },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging()
+    })
+  }))
+
+  const totalTime = recipe.prep_time + recipe.cook_time
+
+  return (
+    <div
+      ref={drag}
+      className={`bg-white rounded-lg border border-gray-200 p-4 cursor-move transition-all hover:shadow-md ${
+        isDragging ? 'opacity-50 transform rotate-2' : ''
+      }`}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <h4 className="font-semibold text-gray-900 text-sm leading-tight">{recipe.name}</h4>
+        <div className="flex space-x-1 ml-2">
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+            >
+              <Edit2 className="w-3 h-3" />
+            </button>
+          )}
+          {onRemove && (
+            <button
+              onClick={onRemove}
+              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-3 text-xs text-gray-600 mb-2">
+        <div className="flex items-center space-x-1">
+          <Clock className="w-3 h-3" />
+          <span>{totalTime}min</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <Users className="w-3 h-3" />
+          <span>{recipe.servings}</span>
+        </div>
+      </div>
+
+      {recipe.dietary_tags && recipe.dietary_tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {recipe.dietary_tags.slice(0, 2).map((tag) => (
+            <span key={tag} className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+              {tag}
+            </span>
+          ))}
+          {recipe.dietary_tags.length > 2 && (
+            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+              +{recipe.dietary_tags.length - 2}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface DroppableDayProps {
+  day: { key: string; label: string }
+  recipe: Recipe | null
+  onDrop: (recipe: Recipe, sourceDay: string, targetDay: string) => void
+  onAddRecipe?: () => void
+  onEditRecipe?: () => void
+  onRemoveRecipe?: () => void
+}
+
+function DroppableDay({ day, recipe, onDrop, onAddRecipe, onEditRecipe, onRemoveRecipe }: DroppableDayProps) {
+  const [{ isOver, canDrop }, drop] = useDrop(() => ({
+    accept: 'recipe',
+    drop: (item: { recipe: Recipe; sourceDay: string }) => {
+      if (item.sourceDay !== day.key) {
+        onDrop(item.recipe, item.sourceDay, day.key)
+      }
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop()
+    })
+  }))
+
+  return (
+    <div
+      ref={drop}
+      className={`border-2 border-dashed rounded-lg p-4 min-h-[200px] transition-colors ${
+        isOver && canDrop
+          ? 'border-blue-400 bg-blue-50'
+          : canDrop
+          ? 'border-gray-300'
+          : 'border-gray-200'
+      }`}
+    >
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-semibold text-gray-900">{day.label}</h3>
+        {!recipe && onAddRecipe && (
+          <button
+            onClick={onAddRecipe}
+            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {recipe ? (
+        <DraggableRecipe
+          recipe={recipe}
+          day={day.key}
+          onEdit={onEditRecipe}
+          onRemove={onRemoveRecipe}
+        />
+      ) : (
+        <div className="flex flex-col items-center justify-center h-32 text-gray-400">
+          <ChefHat className="w-8 h-8 mb-2" />
+          <p className="text-sm">Drop a recipe here or click + to add</p>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function MealPlanTab() {
-  const { currentMealPlan, isOnboardingComplete, setActiveTab } = useAppContext()
+  const { currentMealPlan, setCurrentMealPlan, isOnboardingComplete, setActiveTab } = useAppContext()
+  const [editingRecipe, setEditingRecipe] = useState<{ day: string; recipe: Recipe } | null>(null)
+
+  // Create a mutable copy of the meal plan for drag and drop
+  const workingMealPlan = useMemo(() => {
+    if (!currentMealPlan) return null
+    return { ...currentMealPlan, meals: { ...currentMealPlan.meals } }
+  }, [currentMealPlan])
 
   if (!isOnboardingComplete) {
     return (
@@ -23,22 +182,189 @@ export default function MealPlanTab() {
     )
   }
 
+  if (!currentMealPlan || !workingMealPlan) {
+    return (
+      <div className="text-center py-12">
+        <div className="max-w-md mx-auto">
+          <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Meal Plan Available</h2>
+          <p className="text-gray-600 mb-6">Create your first meal plan by completing the weekly planning process.</p>
+          <button
+            onClick={() => setActiveTab('home')}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Go to Home</span>
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const handleDrop = (recipe: Recipe, sourceDay: string, targetDay: string) => {
+    if (sourceDay === targetDay) return
+
+    const updatedMeals = { ...workingMealPlan.meals }
+
+    // Move recipe to target day
+    updatedMeals[targetDay] = recipe
+
+    // Remove recipe from source day
+    delete updatedMeals[sourceDay]
+
+    const updatedMealPlan = {
+      ...workingMealPlan,
+      meals: updatedMeals
+    }
+
+    setCurrentMealPlan(updatedMealPlan)
+  }
+
+  const handleRemoveRecipe = (day: string) => {
+    const updatedMeals = { ...workingMealPlan.meals }
+    delete updatedMeals[day]
+
+    const updatedMealPlan = {
+      ...workingMealPlan,
+      meals: updatedMeals
+    }
+
+    setCurrentMealPlan(updatedMealPlan)
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    } catch {
+      return dateString
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Meal Plan</h2>
-        <p className="text-gray-600">Drag and drop meal planning interface coming soon!</p>
-
-        {currentMealPlan ? (
-          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-800">You have an active meal plan for week of {currentMealPlan.week_start_date}</p>
-          </div>
-        ) : (
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-blue-800">No active meal plan. Complete weekly planning in the Home tab first.</p>
-          </div>
-        )}
+      {/* Header */}
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Weekly Meal Plan</h1>
+          <p className="text-gray-600">Week of {formatDate(currentMealPlan.week_start_date)}</p>
+          <p className="text-sm text-gray-500 mt-1">Drag recipes between days to reorganize your meals</p>
+        </div>
+        <button
+          onClick={() => setActiveTab('home')}
+          className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Home</span>
+        </button>
       </div>
+
+      {/* Weekly Calendar Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-4">
+        {DAYS.map((day) => (
+          <DroppableDay
+            key={day.key}
+            day={day}
+            recipe={workingMealPlan.meals[day.key] || null}
+            onDrop={handleDrop}
+            onRemoveRecipe={() => handleRemoveRecipe(day.key)}
+            onEditRecipe={() => {
+              const recipe = workingMealPlan.meals[day.key]
+              if (recipe) {
+                setEditingRecipe({ day: day.key, recipe })
+              }
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Recipe Details Modal - Placeholder */}
+      {editingRecipe && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{editingRecipe.recipe.name}</h2>
+                  <p className="text-gray-600">{editingRecipe.day.charAt(0).toUpperCase() + editingRecipe.day.slice(1)}</p>
+                </div>
+                <button
+                  onClick={() => setEditingRecipe(null)}
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <div className="flex items-center space-x-1">
+                    <Clock className="w-4 h-4" />
+                    <span>Prep: {editingRecipe.recipe.prep_time}min</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Clock className="w-4 h-4" />
+                    <span>Cook: {editingRecipe.recipe.cook_time}min</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Users className="w-4 h-4" />
+                    <span>Serves {editingRecipe.recipe.servings}</span>
+                  </div>
+                </div>
+
+                {editingRecipe.recipe.dietary_tags && editingRecipe.recipe.dietary_tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {editingRecipe.recipe.dietary_tags.map((tag) => (
+                      <span key={tag} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Ingredients</h3>
+                  <ul className="space-y-1 text-gray-700">
+                    {editingRecipe.recipe.ingredients.map((ingredient, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        {ingredient}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Instructions</h3>
+                  <ol className="space-y-2">
+                    {editingRecipe.recipe.instructions.map((instruction, index) => (
+                      <li key={index} className="flex items-start text-gray-700">
+                        <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mr-3 flex-shrink-0 mt-0.5">
+                          {index + 1}
+                        </span>
+                        {instruction}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setEditingRecipe(null)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

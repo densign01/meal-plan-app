@@ -4,7 +4,9 @@ import os
 from typing import Dict, List, Any
 from datetime import datetime, timedelta
 from database import get_supabase_client
+from services.recipe_service import RecipeService
 import uuid
+import asyncio
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -49,9 +51,10 @@ Respond with a JSON object in this exact format:
 class MealPlanningService:
     def __init__(self):
         self.supabase = get_supabase_client()
+        self.recipe_service = RecipeService()
 
     async def generate_meal_plan(self, household_id: str, weekly_context: Dict[str, Any]) -> str:
-        """Generate a meal plan for a household and save it to the database"""
+        """Generate a meal plan for a household using RecipeAgent and save it to the database"""
 
         # Get household profile
         household_result = self.supabase.table("household_profiles").select("*").eq("id", household_id).execute()
@@ -61,26 +64,38 @@ class MealPlanningService:
 
         household_profile = household_result.data[0]
 
-        # Generate meal plan using AI
-        prompt = MEAL_PLANNING_PROMPT.format(
-            household_profile=json.dumps(household_profile, indent=2),
-            weekly_context=json.dumps(weekly_context, indent=2)
-        )
+        # Define days and plan variety
+        days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        favorite_cuisines = household_profile.get('favorite_cuisines', [])
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are an expert meal planner. Always respond with valid JSON only."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=2000,
-            temperature=0.7
-        )
+        # Create cuisine plan with variety
+        cuisine_plan = self._plan_cuisine_variety(favorite_cuisines, weekly_context)
 
-        try:
-            meals_json = json.loads(response.choices[0].message.content)
-        except json.JSONDecodeError:
-            raise ValueError("Failed to parse AI response as JSON")
+        # Generate recipes for each day using RecipeAgent
+        meals = {}
+        recipe_tasks = []
+
+        for i, day in enumerate(days):
+            cuisine = cuisine_plan[i] if i < len(cuisine_plan) else "comfort"
+            special_requirements = self._get_day_requirements(day, weekly_context)
+
+            recipe_task = self.recipe_service.get_recipe_for_meal_slot(
+                meal_type="dinner",
+                cuisine=cuisine,
+                household_profile=household_profile,
+                special_requirements=special_requirements
+            )
+            recipe_tasks.append((day, recipe_task))
+
+        # Execute all recipe generation tasks concurrently
+        for day, recipe_task in recipe_tasks:
+            try:
+                recipe = await recipe_task
+                meals[day] = recipe
+            except Exception as e:
+                print(f"Failed to generate recipe for {day}: {e}")
+                # Fallback to a simple recipe if RecipeAgent fails
+                meals[day] = self._create_fallback_recipe(day, household_profile)
 
         # Calculate week start date (next Monday)
         today = datetime.now().date()
@@ -94,7 +109,7 @@ class MealPlanningService:
             "id": str(uuid.uuid4()),
             "household_id": household_id,
             "week_start_date": week_start.isoformat(),
-            "meals": meals_json,
+            "meals": meals,
             "weekly_context": json.dumps(weekly_context)
         }
 
@@ -127,3 +142,93 @@ class MealPlanningService:
         result = self.supabase.table("meal_plans").delete().eq("id", meal_plan_id).execute()
 
         return bool(result.data)
+
+    def _plan_cuisine_variety(self, favorite_cuisines: List[str], weekly_context: Dict[str, Any]) -> List[str]:
+        """Plan cuisine variety across the week based on preferences and context"""
+
+        # Default cuisines if none specified
+        if not favorite_cuisines:
+            favorite_cuisines = ["American", "Italian", "Mexican", "Asian", "Mediterranean"]
+
+        # Ensure we have enough cuisines for variety
+        base_cuisines = favorite_cuisines * 2  # Double to ensure we have enough
+
+        # Create balanced week with variety
+        cuisine_plan = []
+        for i in range(7):
+            # Use modulo to cycle through cuisines with variation
+            cuisine_index = (i * 2) % len(favorite_cuisines)  # *2 for more variety
+            cuisine_plan.append(base_cuisines[cuisine_index])
+
+        return cuisine_plan
+
+    def _get_day_requirements(self, day: str, weekly_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Get special requirements for a specific day based on weekly context"""
+
+        requirements = {}
+
+        # Check for busy days - shorter cooking times
+        time_constraints = weekly_context.get('time_constraints', [])
+        for constraint in time_constraints:
+            if day.lower() in constraint.lower():
+                if 'busy' in constraint.lower() or 'quick' in constraint.lower():
+                    requirements['max_cooking_time'] = 20
+                    requirements['quick_meal'] = True
+
+        # Check for special events
+        special_events = weekly_context.get('special_events', [])
+        for event in special_events:
+            if day.lower() in event.lower():
+                if 'celebration' in event.lower() or 'party' in event.lower():
+                    requirements['special_occasion'] = True
+                elif 'workout' in event.lower() or 'gym' in event.lower():
+                    requirements['high_protein'] = True
+
+        return requirements
+
+    def _create_fallback_recipe(self, day: str, household_profile: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a simple fallback recipe if RecipeAgent fails"""
+
+        servings = len(household_profile.get('members', [])) or 4
+
+        # Simple, reliable recipes for fallback
+        fallback_recipes = {
+            "monday": {
+                "name": "Simple Spaghetti with Marinara",
+                "prep_time": 5,
+                "cook_time": 15,
+                "servings": servings,
+                "ingredients": [
+                    f"{servings} servings spaghetti pasta",
+                    "1 jar marinara sauce",
+                    "Grated Parmesan cheese",
+                    "2 tbsp olive oil"
+                ],
+                "instructions": [
+                    "Cook pasta according to package directions",
+                    "Heat marinara sauce in a separate pan",
+                    "Drain pasta and serve with sauce and cheese"
+                ],
+                "dietary_tags": ["vegetarian"]
+            },
+            "tuesday": {
+                "name": "Quick Chicken and Rice",
+                "prep_time": 10,
+                "cook_time": 20,
+                "servings": servings,
+                "ingredients": [
+                    f"{servings} chicken breasts",
+                    f"{servings/2:.0f} cups rice",
+                    "1 packet onion soup mix",
+                    "Salt and pepper"
+                ],
+                "instructions": [
+                    "Season chicken and cook in skillet",
+                    "Cook rice separately",
+                    "Serve chicken over rice"
+                ],
+                "dietary_tags": ["gluten-free"]
+            }
+        }
+
+        return fallback_recipes.get(day, fallback_recipes["monday"])

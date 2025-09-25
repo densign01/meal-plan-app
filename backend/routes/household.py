@@ -16,6 +16,14 @@ async def create_household_profile(profile: HouseholdProfile):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.get("/by-user/{user_id}")
+async def get_household_profile_by_user(user_id: str):
+    """Get household profile by user ID"""
+    profile = await household_service.get_household_profile_by_user_id(user_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Household profile not found for this user")
+    return profile
+
 @router.get("/{household_id}")
 async def get_household_profile(household_id: str):
     """Get household profile by ID"""

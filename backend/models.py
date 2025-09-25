@@ -24,6 +24,7 @@ class HouseholdMember(BaseModel):
 
 class HouseholdProfile(BaseModel):
     id: Optional[str] = None
+    user_id: Optional[str] = None  # Link to authenticated user
     members: List[HouseholdMember]
     cooking_skill: CookingSkill
     max_cooking_time: int  # minutes

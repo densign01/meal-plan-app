@@ -50,21 +50,17 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
     const loadUserData = async () => {
       if (user && !householdId && !householdProfile) {
         try {
-          // For now, we'll assume the household ID is the user ID
-          // In a real app, you'd have a proper relationship between users and households
-          const potentialHouseholdId = user.id
-
-          // Try to fetch existing household profile
-          const profile = await MealPlanAPI.getHouseholdProfile(potentialHouseholdId)
+          // Try to fetch existing household profile by user ID
+          const profile = await MealPlanAPI.getHouseholdProfileByUserId(user.id)
 
           if (profile) {
             console.log('Found existing household profile:', profile)
-            setHouseholdId(potentialHouseholdId)
+            setHouseholdId(profile.id)
             setHouseholdProfile(profile)
 
             // Also load their recent meal plans
             try {
-              const { meal_plans } = await MealPlanAPI.getHouseholdMealPlans(potentialHouseholdId)
+              const { meal_plans } = await MealPlanAPI.getHouseholdMealPlans(profile.id)
               if (meal_plans.length > 0) {
                 setCurrentMealPlan(meal_plans[0]) // Most recent
               }

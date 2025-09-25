@@ -31,6 +31,15 @@ class HouseholdService:
             return result.data[0]
         return None
 
+    async def get_household_profile_by_user_id(self, user_id: str) -> Optional[dict]:
+        """Get household profile by user ID"""
+
+        result = self.supabase.table("household_profiles").select("*").eq("user_id", user_id).execute()
+
+        if result.data:
+            return result.data[0]
+        return None
+
     async def update_household_profile(self, household_id: str, updates: dict) -> bool:
         """Update household profile"""
 

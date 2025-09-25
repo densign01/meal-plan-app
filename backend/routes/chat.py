@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from database import get_supabase_client
 from chat import process_chat_message
+from services.household_service import HouseholdService
 import uuid
 from datetime import datetime
 
@@ -48,7 +49,7 @@ First question: Tell me about your household - how many people, their names, age
     )
 
 @router.post("/onboarding/{session_id}")
-async def continue_onboarding(session_id: str, chat_message: ChatMessage):
+async def continue_onboarding(session_id: str, chat_message: ChatMessage, user_id: Optional[str] = Query(default=None)):
     """Continue an onboarding conversation"""
     supabase = get_supabase_client()
 
@@ -82,16 +83,14 @@ async def continue_onboarding(session_id: str, chat_message: ChatMessage):
     }
 
     if result["completed"] and result["extracted_data"]:
-        # Create household profile
+        # Create household profile using the service
         try:
-            profile_result = supabase.table("household_profiles").insert(
-                result["extracted_data"]
-            ).execute()
+            # Add user_id to the profile data if provided
+            if user_id:
+                result["extracted_data"]["user_id"] = user_id
 
-            if not profile_result.data:
-                raise Exception("Failed to create household profile")
-
-            household_id = profile_result.data[0]["id"]
+            household_service = HouseholdService()
+            household_id = await household_service.create_household_profile(result["extracted_data"])
             update_data["household_id"] = household_id
 
             # Add household_id to extracted_data for frontend

@@ -18,8 +18,9 @@ export class MealPlanAPI {
     return response.data
   }
 
-  static async continueOnboarding(sessionId: string, message: string) {
-    const response = await api.post(`/chat/onboarding/${sessionId}`, { message })
+  static async continueOnboarding(sessionId: string, message: string, userId?: string) {
+    const params = userId ? { user_id: userId } : {}
+    const response = await api.post(`/chat/onboarding/${sessionId}?${new URLSearchParams(params)}`, { message })
     return response.data
   }
 
@@ -36,6 +37,11 @@ export class MealPlanAPI {
   // Household endpoints
   static async getHouseholdProfile(householdId: string): Promise<HouseholdProfile> {
     const response = await api.get(`/household/${householdId}`)
+    return response.data
+  }
+
+  static async getHouseholdProfileByUserId(userId: string): Promise<HouseholdProfile> {
+    const response = await api.get(`/household/by-user/${userId}`)
     return response.data
   }
 

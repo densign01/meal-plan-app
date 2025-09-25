@@ -127,14 +127,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           </button>
         </div>
 
-        <div className="mt-4 text-center">
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-sm"
-          >
-            Continue without account
-          </button>
-        </div>
       </div>
     </div>
   )
