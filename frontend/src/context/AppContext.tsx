@@ -55,17 +55,20 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 
           if (profile) {
             console.log('Found existing household profile:', profile)
-            setHouseholdId(profile.id)
-            setHouseholdProfile(profile)
+            const profileId = profile.id
+            if (profileId) {
+              setHouseholdId(profileId)
+              setHouseholdProfile(profile)
 
-            // Also load their recent meal plans
-            try {
-              const { meal_plans } = await MealPlanAPI.getHouseholdMealPlans(profile.id)
-              if (meal_plans.length > 0) {
-                setCurrentMealPlan(meal_plans[0]) // Most recent
+              // Also load their recent meal plans
+              try {
+                const { meal_plans } = await MealPlanAPI.getHouseholdMealPlans(profileId)
+                if (meal_plans.length > 0) {
+                  setCurrentMealPlan(meal_plans[0]) // Most recent
+                }
+              } catch (error) {
+                // No meal plans yet, that's okay
               }
-            } catch (error) {
-              // No meal plans yet, that's okay
             }
           }
         } catch (error) {

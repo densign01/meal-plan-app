@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
-import { useDrag, useDrop } from 'react-dnd'
 import { useAppContext } from '../../context/AppContext'
-import { Calendar, ArrowLeft, Clock, Users, ChefHat, Edit2, Plus, Trash2 } from 'lucide-react'
+import { Calendar, ArrowLeft, Clock, Users, ChefHat, Edit2, Trash2 } from 'lucide-react'
 import type { Recipe } from '../../types'
 
 const DAYS = [
@@ -14,31 +13,17 @@ const DAYS = [
   { key: 'sunday', label: 'Sunday' }
 ]
 
-interface DraggableRecipeProps {
+interface RecipeCardProps {
   recipe: Recipe
-  day: string
   onEdit?: () => void
   onRemove?: () => void
 }
 
-function DraggableRecipe({ recipe, day, onEdit, onRemove }: DraggableRecipeProps) {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'recipe',
-    item: { recipe, sourceDay: day },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging()
-    })
-  }))
-
+function RecipeCard({ recipe, onEdit, onRemove }: RecipeCardProps) {
   const totalTime = recipe.prep_time + recipe.cook_time
 
   return (
-    <div
-      ref={drag}
-      className={`bg-white rounded-lg border border-gray-200 p-4 cursor-move transition-all hover:shadow-md ${
-        isDragging ? 'opacity-50 transform rotate-2' : ''
-      }`}
-    >
+    <div className="bg-white rounded-lg border border-gray-200 p-4 transition-all hover:shadow-md">
       <div className="flex justify-between items-start mb-2">
         <h4 className="font-semibold text-gray-900 text-sm leading-tight">{recipe.name}</h4>
         <div className="flex space-x-1 ml-2">
@@ -90,63 +75,30 @@ function DraggableRecipe({ recipe, day, onEdit, onRemove }: DraggableRecipeProps
   )
 }
 
-interface DroppableDayProps {
+interface DayCardProps {
   day: { key: string; label: string }
   recipe: Recipe | null
-  onDrop: (recipe: Recipe, sourceDay: string, targetDay: string) => void
-  onAddRecipe?: () => void
   onEditRecipe?: () => void
   onRemoveRecipe?: () => void
 }
 
-function DroppableDay({ day, recipe, onDrop, onAddRecipe, onEditRecipe, onRemoveRecipe }: DroppableDayProps) {
-  const [{ isOver, canDrop }, drop] = useDrop(() => ({
-    accept: 'recipe',
-    drop: (item: { recipe: Recipe; sourceDay: string }) => {
-      if (item.sourceDay !== day.key) {
-        onDrop(item.recipe, item.sourceDay, day.key)
-      }
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop()
-    })
-  }))
-
+function DayCard({ day, recipe, onEditRecipe, onRemoveRecipe }: DayCardProps) {
   return (
-    <div
-      ref={drop}
-      className={`border-2 border-dashed rounded-lg p-4 min-h-[200px] transition-colors ${
-        isOver && canDrop
-          ? 'border-blue-400 bg-blue-50'
-          : canDrop
-          ? 'border-gray-300'
-          : 'border-gray-200'
-      }`}
-    >
+    <div className="border-2 border-gray-200 rounded-lg p-4 min-h-[200px] bg-gray-50">
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold text-gray-900">{day.label}</h3>
-        {!recipe && onAddRecipe && (
-          <button
-            onClick={onAddRecipe}
-            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        )}
       </div>
 
       {recipe ? (
-        <DraggableRecipe
+        <RecipeCard
           recipe={recipe}
-          day={day.key}
           onEdit={onEditRecipe}
           onRemove={onRemoveRecipe}
         />
       ) : (
         <div className="flex flex-col items-center justify-center h-32 text-gray-400">
           <ChefHat className="w-8 h-8 mb-2" />
-          <p className="text-sm">Drop a recipe here or click + to add</p>
+          <p className="text-sm">No recipe assigned</p>
         </div>
       )}
     </div>
@@ -201,24 +153,6 @@ export default function MealPlanTab() {
     )
   }
 
-  const handleDrop = (recipe: Recipe, sourceDay: string, targetDay: string) => {
-    if (sourceDay === targetDay) return
-
-    const updatedMeals = { ...workingMealPlan.meals }
-
-    // Move recipe to target day
-    updatedMeals[targetDay] = recipe
-
-    // Remove recipe from source day
-    delete updatedMeals[sourceDay]
-
-    const updatedMealPlan = {
-      ...workingMealPlan,
-      meals: updatedMeals
-    }
-
-    setCurrentMealPlan(updatedMealPlan)
-  }
 
   const handleRemoveRecipe = (day: string) => {
     const updatedMeals = { ...workingMealPlan.meals }
@@ -252,7 +186,7 @@ export default function MealPlanTab() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Weekly Meal Plan</h1>
           <p className="text-gray-600">Week of {formatDate(currentMealPlan.week_start_date)}</p>
-          <p className="text-sm text-gray-500 mt-1">Drag recipes between days to reorganize your meals</p>
+          <p className="text-sm text-gray-500 mt-1">Your personalized meal plan for the week</p>
         </div>
         <button
           onClick={() => setActiveTab('home')}
@@ -266,11 +200,10 @@ export default function MealPlanTab() {
       {/* Weekly Calendar Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-4">
         {DAYS.map((day) => (
-          <DroppableDay
+          <DayCard
             key={day.key}
             day={day}
             recipe={workingMealPlan.meals[day.key] || null}
-            onDrop={handleDrop}
             onRemoveRecipe={() => handleRemoveRecipe(day.key)}
             onEditRecipe={() => {
               const recipe = workingMealPlan.meals[day.key]

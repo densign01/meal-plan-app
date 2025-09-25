@@ -1,6 +1,4 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { DndProvider } from 'react-dnd'
-import { HTML5Backend } from 'react-dnd-html5-backend'
 import { AppContextProvider } from './context/AppContext'
 import { AuthProvider } from './context/AuthContext'
 import TabNavigation from './components/TabNavigation'
@@ -73,8 +71,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppContextProvider>
-          <DndProvider backend={HTML5Backend}>
-            <div className="min-h-screen bg-gray-50 pb-20">
+          <div className="min-h-screen bg-gray-50 pb-20">
           <header className="bg-white shadow-sm border-b">
             <div className="max-w-6xl mx-auto px-4 py-4">
               <div className="flex items-center justify-between">
@@ -94,8 +91,7 @@ function App() {
           <main className="max-w-6xl mx-auto px-4 py-6">
             <TabContent />
           </main>
-            </div>
-          </DndProvider>
+          </div>
         </AppContextProvider>
       </AuthProvider>
     </QueryClientProvider>

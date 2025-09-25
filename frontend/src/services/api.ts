@@ -19,8 +19,10 @@ export class MealPlanAPI {
   }
 
   static async continueOnboarding(sessionId: string, message: string, userId?: string) {
-    const params = userId ? { user_id: userId } : {}
-    const response = await api.post(`/chat/onboarding/${sessionId}?${new URLSearchParams(params)}`, { message })
+    const url = userId
+      ? `/chat/onboarding/${sessionId}?user_id=${encodeURIComponent(userId)}`
+      : `/chat/onboarding/${sessionId}`
+    const response = await api.post(url, { message })
     return response.data
   }
 
