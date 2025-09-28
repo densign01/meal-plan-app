@@ -92,9 +92,12 @@ You are helping a user quickly describe their upcoming week for meal planning. A
 
 "Tell me about your upcoming week - any busy days, special events, or specific meal requests?"
 
-If they say "nothing special" or "normal week", immediately respond with "CONTEXT_COMPLETE" and a simple JSON summary. Be efficient - don't ask follow-ups unless essential.
+If they say "nothing special" or "normal week", respond with a friendly completion message followed by "CONTEXT_COMPLETE" and JSON.
 
-Once you have basic info, respond with "CONTEXT_COMPLETE" followed by a JSON summary:
+Be efficient - don't ask follow-ups unless essential. Once you have basic info, say something like:
+"Perfect! Thanks for that information. I'll start working on your personalized meal plan now based on your schedule and preferences."
+
+Then add "CONTEXT_COMPLETE" followed by a JSON summary:
 {
   "week_description": "string summary",
   "special_events": ["event1", "event2"],
@@ -191,11 +194,14 @@ async def process_chat_message(
             extracted_data = json.loads(json_str)
             result["completed"] = True
             result["extracted_data"] = extracted_data
-            # Remove JSON part from message
+            # Remove CONTEXT_COMPLETE and JSON part from message
             if "```json" in assistant_message:
                 result["message"] = assistant_message[:assistant_message.index("```json")].strip()
             else:
                 result["message"] = assistant_message[:json_start].strip()
+
+            # Also remove CONTEXT_COMPLETE from the message
+            result["message"] = result["message"].replace("CONTEXT_COMPLETE", "").strip()
         except (ValueError, json.JSONDecodeError, IndexError) as e:
             print(f"JSON extraction failed: {e}")
             pass

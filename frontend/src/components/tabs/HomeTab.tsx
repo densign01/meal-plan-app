@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAppContext } from '../../context/AppContext'
 import { useAuth } from '../../context/AuthContext'
+import { MealPlanAPI } from '../../services/api'
 import { Calendar, User, MessageCircle, Plus, CheckCircle } from 'lucide-react'
 import OnboardingAgent from '../agents/OnboardingAgent'
 import WeeklyPlanningAgent from '../agents/WeeklyPlanningAgent'
@@ -155,12 +156,34 @@ export default function HomeTab() {
     }
   }
 
-  const handleWeeklyPlanningComplete = () => {
+  const handleWeeklyPlanningComplete = async (weeklyContext: any) => {
     setShowChat(false)
-    // Auto-transition to meal plan tab
-    setTimeout(() => {
-      setActiveTab('meal-plan')
-    }, 500)
+
+    // Generate meal plan with the weekly context
+    if (householdId && weeklyContext) {
+      try {
+        console.log('🍽️ Generating meal plan...', { householdId, weeklyContext })
+        const result = await MealPlanAPI.generateMealPlan(householdId, weeklyContext)
+        console.log('✅ Meal plan generated:', result)
+
+        // Auto-transition to meal plan tab
+        setTimeout(() => {
+          setActiveTab('meal-plan')
+        }, 500)
+      } catch (error) {
+        console.error('❌ Failed to generate meal plan:', error)
+        // Still show the tab but with error state
+        setTimeout(() => {
+          setActiveTab('meal-plan')
+        }, 500)
+      }
+    } else {
+      console.error('❌ Missing householdId or weeklyContext for meal plan generation')
+      // Still show the tab
+      setTimeout(() => {
+        setActiveTab('meal-plan')
+      }, 500)
+    }
   }
 
   const handleStartNewChat = (mode: ChatMode) => {
