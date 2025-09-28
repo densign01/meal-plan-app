@@ -127,14 +127,14 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
     loadUserData()
   }, [user]) // Remove householdId and householdProfile from dependencies to avoid loop
 
-  // Clear data when user logs out
+  // Clear data when user logs out (only trigger on user change, not data changes)
   useEffect(() => {
     console.log('AppContext: User state changed:', { hasUser: !!user, hasHouseholdId: !!householdId, hasProfile: !!householdProfile })
     if (!user && (householdId || householdProfile)) {
       console.log('AppContext: User logged out, clearing data')
       resetAppState()
     }
-  }, [user, householdId, householdProfile])
+  }, [user]) // Remove householdId and householdProfile from dependencies to prevent loop
 
   // Auto-determine onboarding completion
   useEffect(() => {
