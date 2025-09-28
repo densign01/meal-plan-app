@@ -16,10 +16,11 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",  # Local development
+        "http://localhost:3000",  # Alternative local port
         "https://meal-plan-app-three.vercel.app",  # Vercel production
-        "https://*.vercel.app",  # Any Vercel preview deployments
+        "*"  # Temporary: allow all origins to debug
     ],
-    allow_credentials=True,
+    allow_credentials=False,  # Must be False when using "*"
     allow_methods=["*"],
     allow_headers=["*"],
 )
