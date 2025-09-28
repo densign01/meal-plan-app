@@ -8,7 +8,7 @@ import WeeklyPlanningAgent from '../agents/WeeklyPlanningAgent'
 import AuthModal from '../AuthModal'
 import ErrorBoundary from '../ErrorBoundary'
 
-type ChatMode = 'onboarding' | 'onboarding-complete' | 'weekly-planning' | 'meal-modification'
+type ChatMode = 'onboarding' | 'onboarding-complete' | 'weekly-planning' | 'weekly-complete' | 'meal-modification'
 
 interface QuickActionProps {
   icon: React.ComponentType<{ className?: string }>
@@ -118,6 +118,7 @@ export default function HomeTab() {
   const [chatMode, setChatMode] = useState<ChatMode>('onboarding')
   const [showChat, setShowChat] = useState(!isOnboardingComplete)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [weeklyContext, setWeeklyContext] = useState<any>(null)
 
   // Handle returning user who logs in - skip onboarding if they already have a profile
   useEffect(() => {
@@ -156,30 +157,36 @@ export default function HomeTab() {
     }
   }
 
-  const handleWeeklyPlanningComplete = async (weeklyContext: any) => {
-    setShowChat(false)
+  const handleWeeklyPlanningComplete = (context: any) => {
+    // Store the weekly context for meal plan generation
+    console.log('📅 Weekly planning completed with context:', context)
+    setWeeklyContext(context)
 
-    // Generate meal plan with the weekly context
-    if (householdId && weeklyContext) {
-      try {
-        console.log('🍽️ Generating meal plan...', { householdId, weeklyContext })
-        const result = await MealPlanAPI.generateMealPlan(householdId, weeklyContext)
-        console.log('✅ Meal plan generated:', result)
+    // Set chat mode to show completion with action button
+    setChatMode('weekly-complete')
+    setShowChat(true)
+  }
 
-        // Auto-transition to meal plan tab
-        setTimeout(() => {
-          setActiveTab('meal-plan')
-        }, 500)
-      } catch (error) {
-        console.error('❌ Failed to generate meal plan:', error)
-        // Still show the tab but with error state
-        setTimeout(() => {
-          setActiveTab('meal-plan')
-        }, 500)
-      }
-    } else {
+  const handleGenerateMealPlan = async (weeklyContext: any) => {
+    if (!householdId || !weeklyContext) {
       console.error('❌ Missing householdId or weeklyContext for meal plan generation')
-      // Still show the tab
+      return
+    }
+
+    try {
+      console.log('🍽️ Generating meal plan...', { householdId, weeklyContext })
+      const result = await MealPlanAPI.generateMealPlan(householdId, weeklyContext)
+      console.log('✅ Meal plan generated:', result)
+
+      // Hide chat and transition to meal plan tab
+      setShowChat(false)
+      setTimeout(() => {
+        setActiveTab('meal-plan')
+      }, 500)
+    } catch (error) {
+      console.error('❌ Failed to generate meal plan:', error)
+      // Still show the tab but with error state
+      setShowChat(false)
       setTimeout(() => {
         setActiveTab('meal-plan')
       }, 500)
@@ -235,7 +242,7 @@ export default function HomeTab() {
         {showChat && (
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-center space-x-2 mb-4">
-              {chatMode === 'onboarding-complete' ? (
+              {(chatMode === 'onboarding-complete' || chatMode === 'weekly-complete') ? (
                 <CheckCircle className="w-5 h-5 text-green-600" />
               ) : (
                 <MessageCircle className="w-5 h-5 text-blue-600" />
@@ -244,6 +251,7 @@ export default function HomeTab() {
                 {chatMode === 'onboarding' && 'Profile Setup'}
                 {chatMode === 'onboarding-complete' && 'Setup Complete!'}
                 {chatMode === 'weekly-planning' && 'Weekly Planning'}
+                {chatMode === 'weekly-complete' && 'Ready to Create Meal Plan!'}
                 {chatMode === 'meal-modification' && 'Chat with Assistant'}
               </h3>
             </div>
@@ -306,6 +314,32 @@ export default function HomeTab() {
                   )
                 })()}
               </>
+            )}
+
+            {chatMode === 'weekly-complete' && (
+              <div className="text-center py-8">
+                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Perfect! Your weekly context is ready.
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  I have everything I need about your upcoming week. Ready to create your personalized meal plan?
+                </p>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleGenerateMealPlan(weeklyContext)}
+                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    🍽️ Generate My Meal Plan
+                  </button>
+                  <button
+                    onClick={() => setShowChat(false)}
+                    className="w-full px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    Maybe later
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* Future: meal-modification chat */}
