@@ -120,7 +120,10 @@ async def continue_onboarding(session_id: str, chat_message: ChatMessage, user_i
             import traceback
             print(f"Full error traceback: {traceback.format_exc()}")
             # This is a critical error - profile data not saved to Supabase
-            # Consider raising the error instead of continuing silently
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to save profile: {str(e)}"
+            )
 
     supabase.table("chat_sessions").update(update_data).eq("id", session_id).execute()
 
