@@ -175,7 +175,7 @@ async def extract_onboarding_data(chat_history: List[Dict[str, str]]) -> Dict[st
     ]
 
     response = client.chat.completions.create(
-        model="gpt-5-mini",
+        model="gpt-4o-mini",
         messages=messages,
         max_tokens=500,
         temperature=0.1  # Low temperature for consistent extraction
@@ -203,7 +203,7 @@ async def parse_weekly_constraints(chat_history: List[Dict[str, str]]) -> Dict[s
     ]
 
     response = client.chat.completions.create(
-        model="gpt-5-mini",
+        model="gpt-4o-mini",
         messages=messages,
         max_tokens=800,
         temperature=0.1
@@ -236,7 +236,7 @@ Generate a balanced, varied weekly menu following the guidelines in your system 
     ]
 
     response = client.chat.completions.create(
-        model="gpt-5-mini",
+        model="gpt-4o-mini",
         messages=messages,
         max_tokens=1000,
         temperature=0.3
@@ -264,7 +264,7 @@ async def process_chat_message(
     messages.append({"role": "user", "content": message})
 
     response = client.chat.completions.create(
-        model="gpt-5-mini",  # Using gpt-5-mini for improved performance
+        model="gpt-4o-mini",  # Using available OpenAI model
         messages=messages,
         max_tokens=500,
         temperature=0.7

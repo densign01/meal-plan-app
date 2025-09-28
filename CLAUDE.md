@@ -1,0 +1,1 @@
+Always use "GPT-5-mini" as the model. It exists
