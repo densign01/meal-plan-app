@@ -127,26 +127,10 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
     loadUserData()
   }, [user]) // Remove householdId and householdProfile from dependencies to avoid loop
 
-  // Track user authentication state for debugging
+  // DEBUG: Track user state changes without any clearing logic
   useEffect(() => {
-    console.log('🔍 AppContext: User state changed [v2.0]')
-    console.log('👤 User object:', user)
-    console.log('📊 Current state:', {
-      hasUser: !!user,
-      userId: user?.id,
-      userEmail: user?.email,
-      hasHouseholdId: !!householdId,
-      householdIdValue: householdId,
-      hasProfile: !!householdProfile
-    })
-
-    // FORCE DISABLE AUTO-CLEARING - this should stop the data clearing loop
-    console.log('🚫 FORCED: Auto-clearing DISABLED - data should persist!')
-
-    // The old clearing logic has been completely removed
-    if (!user && (householdId || householdProfile)) {
-      console.log('⚠️ WOULD have cleared data here, but logic is disabled')
-    }
+    console.log('🔍 DEBUG: User changed', { user: !!user, id: user?.id })
+    console.log('🚀 VERCEL BUILD CHECK: This message proves new code is deployed!')
   }, [user])
 
   // Auto-determine onboarding completion
