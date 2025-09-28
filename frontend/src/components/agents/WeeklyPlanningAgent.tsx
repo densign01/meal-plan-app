@@ -111,8 +111,7 @@ export default function WeeklyPlanningAgent({
         { role: 'assistant', content: mealPlanMessage }
       ])
 
-      // Call onComplete with the meal plan data
-      setTimeout(() => onComplete(mealPlanData), 1000)
+      // Don't automatically call onComplete - let user decide when to transition
     },
     onError: (error) => {
       console.error('❌ Failed to generate meal plan:', error)
