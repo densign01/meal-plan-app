@@ -47,10 +47,10 @@ export default function WeeklyPlanningAgent({
     mutationFn: ({ sessionId, message }: { sessionId: string; message: string }) =>
       MealPlanAPI.continueWeeklyPlanning(sessionId, message),
     onSuccess: (data, variables) => {
-      const updatedMessages = [
+      const updatedMessages: ChatMessage[] = [
         ...messages,
-        { role: 'user', content: variables.message },
-        { role: 'assistant', content: data.message }
+        { role: 'user' as const, content: variables.message },
+        { role: 'assistant' as const, content: data.message }
       ]
 
       setMessages(updatedMessages)
