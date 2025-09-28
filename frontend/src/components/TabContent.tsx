@@ -1,4 +1,4 @@
-import { useAppContext } from '../context/AppContext'
+import { useAppContext } from '../context/AppContext2'
 import HomeTab from './tabs/HomeTab'
 import MealPlanTab from './tabs/MealPlanTab'
 import GroceryTab from './tabs/GroceryTab'
