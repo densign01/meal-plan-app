@@ -80,7 +80,7 @@ export default function WeeklyPlanningAgent({
       setIsGeneratingMealPlan(true)
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: 'Perfect! Now let me work with my team to create your personalized meal plan...' }
+        { role: 'assistant', content: 'Perfect! Now let me create your personalized meal plan...' }
       ])
 
       // Step 1: Get household profile
@@ -97,18 +97,21 @@ export default function WeeklyPlanningAgent({
       setMealPlan(mealPlanData)
       setIsGeneratingMealPlan(false)
 
-      // Create meal plan display message
+      // Create meal plan display message with proper formatting
       let mealPlanMessage = "Here's your personalized meal plan!\n\n"
       if (mealPlanData?.meals) {
         Object.entries(mealPlanData.meals).forEach(([day, meal]: [string, any]) => {
-          mealPlanMessage += `**${day.charAt(0).toUpperCase() + day.slice(1)}:** ${meal?.name || meal || 'No meal planned'}\n`
+          const dayName = day.charAt(0).toUpperCase() + day.slice(1)
+          const mealName = meal?.name || meal || 'No meal planned'
+          mealPlanMessage += `${dayName}: ${mealName}\n`
         })
       }
       mealPlanMessage += "\nWould you like to view the full meal plan with recipes and details?"
 
+      // Add a simple text message first
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: mealPlanMessage }
+        { role: 'assistant', content: "Here's your personalized meal plan!" }
       ])
 
       // Don't automatically call onComplete - let user decide when to transition
@@ -178,6 +181,24 @@ export default function WeeklyPlanningAgent({
 
       {mealPlan && (
         <div className="space-y-4">
+          {/* Meal Plan Display */}
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h4 className="font-semibold text-gray-900 mb-4">Your Weekly Meal Plan:</h4>
+            <div className="space-y-2">
+              {mealPlan?.meals && Object.entries(mealPlan.meals).map(([day, meal]: [string, any]) => (
+                <div key={day} className="flex">
+                  <span className="font-semibold text-gray-900 capitalize min-w-[100px]">
+                    {day}:
+                  </span>
+                  <span className="text-gray-700 ml-2">
+                    {meal?.name || meal || 'No meal planned'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
           <div className="text-center">
             <button
               onClick={() => onComplete(mealPlan)}
