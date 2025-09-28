@@ -87,21 +87,76 @@ Return ONLY valid JSON with no additional text:
 }
 """
 
-WEEKLY_PLANNING_SYSTEM_PROMPT = """
-You are helping a user quickly describe their upcoming week for meal planning. Ask ONE focused question:
+# ========== THREE-AGENT MEAL PLANNING ARCHITECTURE ==========
 
-"Tell me about your upcoming week - any busy days, special events, or specific meal requests?"
+INTERFACE_AGENT_PROMPT = """
+You are a warm, friendly meal planning assistant helping families plan their weekly meals. Your job is to have a natural conversation with the user to understand their upcoming week.
 
-If they say "nothing special" or "normal week", respond with a friendly completion message followed by "CONTEXT_COMPLETE" and JSON.
+Ask questions naturally and conversationally to understand:
+- Any busy days or special events
+- Nights they don't need food (eating out, traveling, etc.)
+- Nights they need extra food (guests, larger portions)
+- Specific meal requests or preferences for the week
+- Any dietary needs for that particular week
 
-Be efficient - don't ask follow-ups unless essential. Once you have basic info, say something like:
-"Perfect! Thanks for that information. I'll start working on your personalized meal plan now based on your schedule and preferences."
+Be warm and engaging. Don't make it feel like a checklist. Once you have a good understanding of their week, say something like:
+"Perfect! I have everything I need. Let me work on creating your personalized meal plan now."
 
-Then add "CONTEXT_COMPLETE" followed by a JSON summary:
+Then respond with "WEEK_UNDERSTOOD" to signal completion.
+"""
+
+ADMIN_AGENT_PROMPT = """
+You are an administrative agent that parses weekly planning conversations into structured meal planning constraints.
+
+Analyze the conversation and extract specific constraints for each day of the week. Focus on:
+- Portion requirements (normal, extra, none, reduced)
+- Special dietary needs for specific days
+- Meal complexity constraints (busy days = simple meals)
+- Specific meal requests or preferences mentioned
+
+Return ONLY valid JSON in this exact format:
 {
-  "week_description": "string summary",
-  "special_events": ["event1", "event2"],
-  "time_constraints": ["Monday: very busy", "Wednesday: quick meal needed"]
+  "monday": {"portions": "normal|extra|none|reduced", "complexity": "simple|normal|complex", "notes": "any specific requests"},
+  "tuesday": {"portions": "normal|extra|none|reduced", "complexity": "simple|normal|complex", "notes": "any specific requests"},
+  "wednesday": {"portions": "normal|extra|none|reduced", "complexity": "simple|normal|complex", "notes": "any specific requests"},
+  "thursday": {"portions": "normal|extra|none|reduced", "complexity": "simple|normal|complex", "notes": "any specific requests"},
+  "friday": {"portions": "normal|extra|none|reduced", "complexity": "simple|normal|complex", "notes": "any specific requests"},
+  "saturday": {"portions": "normal|extra|none|reduced", "complexity": "simple|normal|complex", "notes": "any specific requests"},
+  "sunday": {"portions": "normal|extra|none|reduced", "complexity": "simple|normal|complex", "notes": "any specific requests"}
+}
+"""
+
+MENU_GENERATION_AGENT_PROMPT = """
+You are a culinary expert specializing in creating balanced, varied weekly meal plans. Your job is to generate descriptive, appealing meal titles.
+
+Given household profile and weekly constraints, create a balanced menu with:
+- Variety in proteins, cooking methods, and cuisines
+- No repetitive meals within the week
+- Appropriate complexity based on constraints
+- Descriptive, appetizing meal titles
+
+Use this format for meal titles:
+- "Chicken Parmesan with Spaghetti and Side Salad"
+- "Roasted Salmon with Steamed Broccoli and Rice Pilaf"
+- "Beef Stir-Fry with Mixed Vegetables and Jasmine Rice"
+- "Turkey Meatballs in Marinara with Garlic Bread"
+
+Consider:
+- Cooking skill level (beginner = simpler techniques)
+- Dietary restrictions and preferences
+- Number of people (portion scaling)
+- Children present (kid-friendly options)
+- Weekly constraints (busy days = quicker meals)
+
+Return ONLY valid JSON:
+{
+  "monday": "Descriptive Meal Title",
+  "tuesday": "Descriptive Meal Title",
+  "wednesday": "Descriptive Meal Title",
+  "thursday": "Descriptive Meal Title",
+  "friday": "Descriptive Meal Title",
+  "saturday": "Descriptive Meal Title",
+  "sunday": "Descriptive Meal Title"
 }
 """
 
@@ -120,7 +175,7 @@ async def extract_onboarding_data(chat_history: List[Dict[str, str]]) -> Dict[st
     ]
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-5-mini",
         messages=messages,
         max_tokens=500,
         temperature=0.1  # Low temperature for consistent extraction
@@ -134,6 +189,67 @@ async def extract_onboarding_data(chat_history: List[Dict[str, str]]) -> Dict[st
         print(f"Raw response: {response.choices[0].message.content}")
         raise ValueError("Failed to extract valid JSON from conversation")
 
+async def parse_weekly_constraints(chat_history: List[Dict[str, str]]) -> Dict[str, Any]:
+    """Parse weekly planning conversation into structured constraints"""
+
+    conversation_text = "\n".join([
+        f"{msg['role'].title()}: {msg['content']}"
+        for msg in chat_history
+    ])
+
+    messages = [
+        {"role": "system", "content": ADMIN_AGENT_PROMPT},
+        {"role": "user", "content": f"Parse this weekly planning conversation:\n\n{conversation_text}"}
+    ]
+
+    response = client.chat.completions.create(
+        model="gpt-5-mini",
+        messages=messages,
+        max_tokens=800,
+        temperature=0.1
+    )
+
+    try:
+        constraints = json.loads(response.choices[0].message.content.strip())
+        return constraints
+    except json.JSONDecodeError as e:
+        print(f"Constraint parsing failed: {e}")
+        print(f"Raw response: {response.choices[0].message.content}")
+        raise ValueError("Failed to extract valid JSON from weekly conversation")
+
+async def generate_weekly_menu(household_profile: Dict[str, Any], weekly_constraints: Dict[str, Any]) -> Dict[str, Any]:
+    """Generate balanced weekly menu using household profile and constraints"""
+
+    prompt = f"""
+HOUSEHOLD PROFILE:
+{json.dumps(household_profile, indent=2)}
+
+WEEKLY CONSTRAINTS:
+{json.dumps(weekly_constraints, indent=2)}
+
+Generate a balanced, varied weekly menu following the guidelines in your system prompt.
+"""
+
+    messages = [
+        {"role": "system", "content": MENU_GENERATION_AGENT_PROMPT},
+        {"role": "user", "content": prompt}
+    ]
+
+    response = client.chat.completions.create(
+        model="gpt-5-mini",
+        messages=messages,
+        max_tokens=1000,
+        temperature=0.3
+    )
+
+    try:
+        menu = json.loads(response.choices[0].message.content.strip())
+        return menu
+    except json.JSONDecodeError as e:
+        print(f"Menu generation failed: {e}")
+        print(f"Raw response: {response.choices[0].message.content}")
+        raise ValueError("Failed to generate valid menu JSON")
+
 async def process_chat_message(
     message: str,
     chat_history: List[Dict[str, str]],
@@ -141,14 +257,14 @@ async def process_chat_message(
 ) -> Dict[str, Any]:
     """Process a chat message and return response with any extracted data"""
 
-    system_prompt = ONBOARDING_SYSTEM_PROMPT if chat_type == "onboarding" else WEEKLY_PLANNING_SYSTEM_PROMPT
+    system_prompt = ONBOARDING_SYSTEM_PROMPT if chat_type == "onboarding" else INTERFACE_AGENT_PROMPT
 
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(chat_history)
     messages.append({"role": "user", "content": message})
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",  # Using gpt-4o-mini as specified in tech stack
+        model="gpt-5-mini",  # Using gpt-5-mini for improved performance
         messages=messages,
         max_tokens=500,
         temperature=0.7
@@ -168,42 +284,47 @@ async def process_chat_message(
         # Remove PROFILE_COMPLETE from the message
         result["message"] = assistant_message.replace("PROFILE_COMPLETE", "").strip()
 
-    elif chat_type == "weekly_planning" and "CONTEXT_COMPLETE" in assistant_message:
-        try:
-            # Look for JSON in code blocks first (```json ... ```)
-            if "```json" in assistant_message:
-                json_start = assistant_message.index("```json") + 7
-                json_end = assistant_message.index("```", json_start)
-                json_str = assistant_message[json_start:json_end].strip()
-            else:
-                # Fallback to looking for direct JSON
-                json_start = assistant_message.index("{")
-                # Find the matching closing brace
-                brace_count = 0
-                json_end = json_start
-                for i, char in enumerate(assistant_message[json_start:], json_start):
-                    if char == "{":
-                        brace_count += 1
-                    elif char == "}":
-                        brace_count -= 1
-                        if brace_count == 0:
-                            json_end = i + 1
-                            break
-                json_str = assistant_message[json_start:json_end]
-
-            extracted_data = json.loads(json_str)
-            result["completed"] = True
-            result["extracted_data"] = extracted_data
-            # Remove CONTEXT_COMPLETE and JSON part from message
-            if "```json" in assistant_message:
-                result["message"] = assistant_message[:assistant_message.index("```json")].strip()
-            else:
-                result["message"] = assistant_message[:json_start].strip()
-
-            # Also remove CONTEXT_COMPLETE from the message
-            result["message"] = result["message"].replace("CONTEXT_COMPLETE", "").strip()
-        except (ValueError, json.JSONDecodeError, IndexError) as e:
-            print(f"JSON extraction failed: {e}")
-            pass
+    elif chat_type == "weekly_planning" and "WEEK_UNDERSTOOD" in assistant_message:
+        result["completed"] = True
+        # Remove WEEK_UNDERSTOOD from the message
+        result["message"] = assistant_message.replace("WEEK_UNDERSTOOD", "").strip()
 
     return result
+
+async def create_comprehensive_meal_plan(
+    household_id: str,
+    chat_history: List[Dict[str, str]],
+    household_profile: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Complete three-agent meal plan generation workflow:
+    1. Parse weekly conversation into constraints (Admin Agent)
+    2. Generate balanced menu (Menu Generation Agent)
+    3. Return comprehensive meal plan
+    """
+
+    try:
+        # Step 1: Parse weekly constraints using Admin Agent
+        print("🔍 Step 1: Parsing weekly constraints...")
+        weekly_constraints = await parse_weekly_constraints(chat_history)
+        print(f"✅ Constraints parsed: {weekly_constraints}")
+
+        # Step 2: Generate menu using Menu Generation Agent
+        print("🍽️ Step 2: Generating balanced menu...")
+        weekly_menu = await generate_weekly_menu(household_profile, weekly_constraints)
+        print(f"✅ Menu generated: {weekly_menu}")
+
+        # Step 3: Create comprehensive meal plan structure
+        meal_plan = {
+            "household_id": household_id,
+            "meals": weekly_menu,
+            "constraints": weekly_constraints,
+            "generated_at": "2024-01-01",  # Will be replaced with actual timestamp
+            "status": "active"
+        }
+
+        return meal_plan
+
+    except Exception as e:
+        print(f"❌ Error in comprehensive meal plan generation: {e}")
+        raise e

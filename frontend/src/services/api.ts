@@ -61,6 +61,15 @@ export class MealPlanAPI {
     return response.data
   }
 
+  static async generateComprehensiveMealPlan(householdId: string, chatHistory: any[], householdProfile: any) {
+    const response = await api.post('/meal-plans/generate-comprehensive', {
+      household_id: householdId,
+      chat_history: chatHistory,
+      household_profile: householdProfile
+    })
+    return response.data
+  }
+
   static async getMealPlan(mealPlanId: string): Promise<MealPlan> {
     const response = await api.get(`/meal-plans/${mealPlanId}`)
     return response.data

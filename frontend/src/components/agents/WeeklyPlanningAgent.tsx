@@ -53,10 +53,11 @@ export default function WeeklyPlanningAgent({
       ])
 
       // Check if weekly planning is complete
-      if (data.completed && data.extracted_data) {
+      if (data.completed) {
         setIsCompleted(true)
-        // Start meal plan generation automatically
-        generateMealPlanMutation.mutate(data.extracted_data)
+        // Start meal plan generation automatically with full chat history
+        const fullChatHistory = [...messages, { role: 'user', content: message }, { role: 'assistant', content: data.message }]
+        generateMealPlanMutation.mutate(fullChatHistory)
       }
     },
     onError: (error) => {
@@ -71,24 +72,24 @@ export default function WeeklyPlanningAgent({
     }
   })
 
-  // Generate meal plan mutation
+  // Generate meal plan mutation using three-agent workflow
   const generateMealPlanMutation = useMutation({
-    mutationFn: async (weeklyContext: any) => {
+    mutationFn: async (chatHistory: any) => {
       setIsGeneratingMealPlan(true)
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: 'Perfect! Now let me create your personalized meal plan...' }
+        { role: 'assistant', content: 'Perfect! Now let me work with my team to create your personalized meal plan...' }
       ])
 
-      // Generate meal plan
-      const generateResult = await MealPlanAPI.generateMealPlan(householdId, weeklyContext)
-      console.log('✅ Meal plan generation started:', generateResult)
+      // Step 1: Get household profile
+      const householdProfile = await MealPlanAPI.getHouseholdProfile(householdId)
+      console.log('✅ Household profile fetched:', householdProfile)
 
-      // Fetch the actual meal plan data
-      const mealPlanData = await MealPlanAPI.getMealPlan(generateResult.meal_plan_id)
-      console.log('✅ Meal plan data fetched:', mealPlanData)
+      // Step 2: Use three-agent workflow to generate comprehensive meal plan
+      const generateResult = await MealPlanAPI.generateComprehensiveMealPlan(householdId, chatHistory, householdProfile)
+      console.log('✅ Comprehensive meal plan generated:', generateResult)
 
-      return mealPlanData
+      return generateResult
     },
     onSuccess: (mealPlanData) => {
       setMealPlan(mealPlanData)
