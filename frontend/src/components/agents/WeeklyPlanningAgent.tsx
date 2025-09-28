@@ -46,18 +46,20 @@ export default function WeeklyPlanningAgent({
   const continueMutation = useMutation({
     mutationFn: ({ sessionId, message }: { sessionId: string; message: string }) =>
       MealPlanAPI.continueWeeklyPlanning(sessionId, message),
-    onSuccess: (data) => {
-      setMessages(prev => [
-        ...prev,
+    onSuccess: (data, variables) => {
+      const updatedMessages = [
+        ...messages,
+        { role: 'user', content: variables.message },
         { role: 'assistant', content: data.message }
-      ])
+      ]
+
+      setMessages(updatedMessages)
 
       // Check if weekly planning is complete
       if (data.completed) {
         setIsCompleted(true)
         // Start meal plan generation automatically with full chat history
-        const fullChatHistory = [...messages, { role: 'user', content: message }, { role: 'assistant', content: data.message }]
-        generateMealPlanMutation.mutate(fullChatHistory)
+        generateMealPlanMutation.mutate(updatedMessages)
       }
     },
     onError: (error) => {
