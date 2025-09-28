@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useAppContext } from '../../context/AppContext2'
+import { useAppContext } from '../../context/AppContext'
 import { Calendar, ArrowLeft, Clock, Users, ChefHat, Edit2, Trash2 } from 'lucide-react'
 import type { Recipe } from '../../types'
 

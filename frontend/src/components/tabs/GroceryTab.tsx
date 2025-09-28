@@ -1,4 +1,4 @@
-import { useAppContext } from '../../context/AppContext2'
+import { useAppContext } from '../../context/AppContext'
 import { ShoppingCart, ArrowLeft } from 'lucide-react'
 
 export default function GroceryTab() {

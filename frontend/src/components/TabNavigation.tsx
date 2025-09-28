@@ -1,5 +1,5 @@
 import { MessageCircle, Calendar, ShoppingCart, User } from 'lucide-react'
-import { useAppContext, type TabType } from '../context/AppContext2'
+import { useAppContext, type TabType } from '../context/AppContext'
 
 interface TabData {
   id: TabType
