@@ -1,4 +1,4 @@
-import { useAppContext } from '../../context/AppContext'
+import { useAppContext } from '../../context/AppContext2'
 import { useAuth } from '../../context/AuthContext'
 import { User, ArrowLeft, Edit3 } from 'lucide-react'
 

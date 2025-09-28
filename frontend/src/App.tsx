@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AppContextProvider } from './context/AppContext'
+import { AppContextProvider } from './context/AppContext2'
 import { AuthProvider } from './context/AuthContext'
 import TabNavigation from './components/TabNavigation'
 import TabContent from './components/TabContent'

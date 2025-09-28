@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useAppContext } from '../../context/AppContext'
+import { useAppContext } from '../../context/AppContext2'
 import { useAuth } from '../../context/AuthContext'
 import { Calendar, User, MessageCircle, Plus, CheckCircle } from 'lucide-react'
 import OnboardingAgent from '../agents/OnboardingAgent'
