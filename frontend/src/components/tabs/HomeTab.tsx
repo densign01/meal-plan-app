@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAppContext } from '../../context/AppContext'
 import { useAuth } from '../../context/AuthContext'
-import { MealPlanAPI } from '../../services/api'
 import { Calendar, User, MessageCircle, Plus, CheckCircle } from 'lucide-react'
 import OnboardingAgent from '../agents/OnboardingAgent'
 import WeeklyPlanningAgent from '../agents/WeeklyPlanningAgent'
@@ -118,8 +117,6 @@ export default function HomeTab() {
   const [chatMode, setChatMode] = useState<ChatMode>('onboarding')
   const [showChat, setShowChat] = useState(!isOnboardingComplete)
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const [weeklyContext, setWeeklyContext] = useState<any>(null)
-  const [generatedMealPlan, setGeneratedMealPlan] = useState<any>(null)
 
   // Handle returning user who logs in - skip onboarding if they already have a profile
   useEffect(() => {
@@ -159,9 +156,8 @@ export default function HomeTab() {
   }
 
   const handleWeeklyPlanningComplete = (mealPlan: any) => {
-    // Store the generated meal plan and transition to meal plan tab
+    // Weekly planning and meal plan generation completed, transition to meal plan tab
     console.log('📅 Weekly planning and meal plan generation completed:', mealPlan)
-    setGeneratedMealPlan(mealPlan)
 
     // Hide chat and go to meal plan tab
     setShowChat(false)
@@ -220,7 +216,7 @@ export default function HomeTab() {
         {showChat && (
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-center space-x-2 mb-4">
-              {(chatMode === 'onboarding-complete' || chatMode === 'weekly-complete') ? (
+              {chatMode === 'onboarding-complete' ? (
                 <CheckCircle className="w-5 h-5 text-green-600" />
               ) : (
                 <MessageCircle className="w-5 h-5 text-blue-600" />
