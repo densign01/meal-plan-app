@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 
 interface WeeklyPlanningAgentProps {
   householdId: string
-  onComplete: (weeklyContext: any) => void
+  onComplete: (mealPlan: any) => void
   onBack: () => void
 }
 
@@ -19,6 +19,8 @@ export default function WeeklyPlanningAgent({
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isCompleted, setIsCompleted] = useState(false)
+  const [isGeneratingMealPlan, setIsGeneratingMealPlan] = useState(false)
+  const [mealPlan, setMealPlan] = useState<any>(null)
 
   // Start weekly planning session
   const startMutation = useMutation({
@@ -53,7 +55,8 @@ export default function WeeklyPlanningAgent({
       // Check if weekly planning is complete
       if (data.completed && data.extracted_data) {
         setIsCompleted(true)
-        setTimeout(() => onComplete(data.extracted_data), 1000)
+        // Start meal plan generation automatically
+        generateMealPlanMutation.mutate(data.extracted_data)
       }
     },
     onError: (error) => {
@@ -63,6 +66,59 @@ export default function WeeklyPlanningAgent({
         {
           role: 'assistant',
           content: 'Sorry, I had trouble processing that. Could you please try again?'
+        }
+      ])
+    }
+  })
+
+  // Generate meal plan mutation
+  const generateMealPlanMutation = useMutation({
+    mutationFn: async (weeklyContext: any) => {
+      setIsGeneratingMealPlan(true)
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: 'Perfect! Now let me create your personalized meal plan...' }
+      ])
+
+      // Generate meal plan
+      const generateResult = await MealPlanAPI.generateMealPlan(householdId, weeklyContext)
+      console.log('✅ Meal plan generation started:', generateResult)
+
+      // Fetch the actual meal plan data
+      const mealPlanData = await MealPlanAPI.getMealPlan(generateResult.meal_plan_id)
+      console.log('✅ Meal plan data fetched:', mealPlanData)
+
+      return mealPlanData
+    },
+    onSuccess: (mealPlanData) => {
+      setMealPlan(mealPlanData)
+      setIsGeneratingMealPlan(false)
+
+      // Create meal plan display message
+      let mealPlanMessage = "Here's your personalized meal plan!\n\n"
+      if (mealPlanData?.meals) {
+        Object.entries(mealPlanData.meals).forEach(([day, meal]: [string, any]) => {
+          mealPlanMessage += `**${day.charAt(0).toUpperCase() + day.slice(1)}:** ${meal?.name || meal || 'No meal planned'}\n`
+        })
+      }
+      mealPlanMessage += "\nWould you like to view the full meal plan with recipes and details?"
+
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: mealPlanMessage }
+      ])
+
+      // Call onComplete with the meal plan data
+      setTimeout(() => onComplete(mealPlanData), 1000)
+    },
+    onError: (error) => {
+      console.error('❌ Failed to generate meal plan:', error)
+      setIsGeneratingMealPlan(false)
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Sorry, I had trouble generating your meal plan. Would you like me to try again?'
         }
       ])
     }
@@ -88,7 +144,7 @@ export default function WeeklyPlanningAgent({
     continueMutation.mutate({ sessionId, message })
   }
 
-  const isLoading = startMutation.isPending || continueMutation.isPending
+  const isLoading = startMutation.isPending || continueMutation.isPending || isGeneratingMealPlan
 
   return (
     <div className="space-y-6">
@@ -118,11 +174,16 @@ export default function WeeklyPlanningAgent({
         disabled={isCompleted}
       />
 
-      {isCompleted && (
-        <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-          <p className="text-green-800 font-medium">
-            ✅ Week planned! Generating your personalized meal plan...
-          </p>
+      {mealPlan && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <button
+              onClick={() => onComplete(mealPlan)}
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              📅 View Full Meal Plan
+            </button>
+          </div>
         </div>
       )}
 

@@ -8,7 +8,7 @@ import WeeklyPlanningAgent from '../agents/WeeklyPlanningAgent'
 import AuthModal from '../AuthModal'
 import ErrorBoundary from '../ErrorBoundary'
 
-type ChatMode = 'onboarding' | 'onboarding-complete' | 'weekly-planning' | 'weekly-complete' | 'meal-plan-generated' | 'meal-modification'
+type ChatMode = 'onboarding' | 'onboarding-complete' | 'weekly-planning' | 'meal-modification'
 
 interface QuickActionProps {
   icon: React.ComponentType<{ className?: string }>
@@ -158,45 +158,18 @@ export default function HomeTab() {
     }
   }
 
-  const handleWeeklyPlanningComplete = (context: any) => {
-    // Store the weekly context for meal plan generation
-    console.log('📅 Weekly planning completed with context:', context)
-    setWeeklyContext(context)
+  const handleWeeklyPlanningComplete = (mealPlan: any) => {
+    // Store the generated meal plan and transition to meal plan tab
+    console.log('📅 Weekly planning and meal plan generation completed:', mealPlan)
+    setGeneratedMealPlan(mealPlan)
 
-    // Set chat mode to show completion with action button
-    setChatMode('weekly-complete')
-    setShowChat(true)
+    // Hide chat and go to meal plan tab
+    setShowChat(false)
+    setTimeout(() => {
+      setActiveTab('meal-plan')
+    }, 500)
   }
 
-  const handleGenerateMealPlan = async (weeklyContext: any) => {
-    if (!householdId || !weeklyContext) {
-      console.error('❌ Missing householdId or weeklyContext for meal plan generation')
-      return
-    }
-
-    try {
-      console.log('🍽️ Generating meal plan...', { householdId, weeklyContext })
-
-      // First generate the meal plan (returns meal_plan_id)
-      const generateResult = await MealPlanAPI.generateMealPlan(householdId, weeklyContext)
-      console.log('✅ Meal plan generation started:', generateResult)
-
-      // Then fetch the actual meal plan data
-      const mealPlan = await MealPlanAPI.getMealPlan(generateResult.meal_plan_id)
-      console.log('✅ Meal plan data fetched:', mealPlan)
-
-      // Store the generated meal plan and show it in chat first
-      setGeneratedMealPlan(mealPlan)
-      setChatMode('meal-plan-generated')
-      setShowChat(true)
-    } catch (error) {
-      console.error('❌ Failed to generate meal plan:', error)
-      // Show error in chat
-      setGeneratedMealPlan({ error: 'Failed to generate meal plan. Please try again.' })
-      setChatMode('meal-plan-generated')
-      setShowChat(true)
-    }
-  }
 
   const handleStartNewChat = (mode: ChatMode) => {
     setChatMode(mode)
@@ -255,9 +228,7 @@ export default function HomeTab() {
               <h3 className="text-lg font-semibold text-gray-900">
                 {chatMode === 'onboarding' && 'Profile Setup'}
                 {chatMode === 'onboarding-complete' && 'Setup Complete!'}
-                {chatMode === 'weekly-planning' && 'Weekly Planning'}
-                {chatMode === 'weekly-complete' && 'Ready to Create Meal Plan!'}
-                {chatMode === 'meal-plan-generated' && 'Your Meal Plan'}
+                {chatMode === 'weekly-planning' && 'Weekly Planning & Meal Generation'}
                 {chatMode === 'meal-modification' && 'Chat with Assistant'}
               </h3>
             </div>
@@ -322,100 +293,6 @@ export default function HomeTab() {
               </>
             )}
 
-            {chatMode === 'weekly-complete' && (
-              <div className="text-center py-8">
-                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Perfect! Your weekly context is ready.
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  I have everything I need about your upcoming week. Ready to create your personalized meal plan?
-                </p>
-                <div className="space-y-3">
-                  <button
-                    onClick={() => handleGenerateMealPlan(weeklyContext)}
-                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  >
-                    🍽️ Generate My Meal Plan
-                  </button>
-                  <button
-                    onClick={() => setShowChat(false)}
-                    className="w-full px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
-                  >
-                    Maybe later
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {chatMode === 'meal-plan-generated' && (
-              <div className="py-6">
-                {generatedMealPlan?.error ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-red-600 text-2xl">⚠️</span>
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      Oops! Something went wrong
-                    </h3>
-                    <p className="text-red-600 mb-6">
-                      {generatedMealPlan.error}
-                    </p>
-                    <button
-                      onClick={() => setChatMode('weekly-complete')}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                    >
-                      Try Again
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="text-center">
-                      <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        Here's your personalized meal plan!
-                      </h3>
-                      <p className="text-gray-600 mb-6">
-                        Based on your preferences and weekly schedule
-                      </p>
-                    </div>
-
-                    {generatedMealPlan?.meals && (
-                      <div className="bg-gray-50 rounded-lg p-6 text-left">
-                        {Object.entries(generatedMealPlan.meals).map(([day, meal]: [string, any]) => (
-                          <div key={day} className="mb-3 last:mb-0">
-                            <span className="font-semibold text-gray-900 capitalize">
-                              {day}:
-                            </span>{' '}
-                            <span className="text-gray-700">
-                              {meal?.name || meal || 'No meal planned'}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="space-y-3">
-                      <button
-                        onClick={() => {
-                          setShowChat(false)
-                          setTimeout(() => setActiveTab('meal-plan'), 500)
-                        }}
-                        className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                      >
-                        📅 View Full Meal Plan
-                      </button>
-                      <button
-                        onClick={() => setChatMode('weekly-complete')}
-                        className="w-full px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
-                      >
-                        Generate Different Plan
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Future: meal-modification chat */}
             {chatMode === 'meal-modification' && (
