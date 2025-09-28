@@ -129,7 +129,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 
   // Track user authentication state for debugging
   useEffect(() => {
-    console.log('🔍 AppContext: User state changed')
+    console.log('🔍 AppContext: User state changed [v2.0]')
     console.log('👤 User object:', user)
     console.log('📊 Current state:', {
       hasUser: !!user,
@@ -140,9 +140,13 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
       hasProfile: !!householdProfile
     })
 
-    // TEMPORARILY DISABLE AUTO-CLEARING to stop the loop
-    // We'll handle logout manually when needed
-    console.log('ℹ️ Auto-clearing disabled - data will persist across auth state changes')
+    // FORCE DISABLE AUTO-CLEARING - this should stop the data clearing loop
+    console.log('🚫 FORCED: Auto-clearing DISABLED - data should persist!')
+
+    // The old clearing logic has been completely removed
+    if (!user && (householdId || householdProfile)) {
+      console.log('⚠️ WOULD have cleared data here, but logic is disabled')
+    }
   }, [user])
 
   // Auto-determine onboarding completion
