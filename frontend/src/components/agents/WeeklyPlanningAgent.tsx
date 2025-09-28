@@ -22,13 +22,17 @@ export default function WeeklyPlanningAgent({
 
   // Start weekly planning session
   const startMutation = useMutation({
-    mutationFn: () => MealPlanAPI.startWeeklyPlanning(householdId),
+    mutationFn: () => {
+      console.log('🔄 Starting weekly planning API call with householdId:', householdId)
+      return MealPlanAPI.startWeeklyPlanning(householdId)
+    },
     onSuccess: (data) => {
+      console.log('✅ Weekly planning started successfully:', data)
       setSessionId(data.session_id)
       setMessages([{ role: 'assistant', content: data.message }])
     },
     onError: (error) => {
-      console.error('Failed to start weekly planning:', error)
+      console.error('❌ Failed to start weekly planning:', error)
       setMessages([{
         role: 'assistant',
         content: 'Sorry, I had trouble starting weekly planning. Please try again.'
@@ -66,7 +70,12 @@ export default function WeeklyPlanningAgent({
 
   // Start weekly planning when component mounts
   useEffect(() => {
-    startMutation.mutate()
+    console.log('🎯 WeeklyPlanningAgent mounted with householdId:', householdId)
+    if (householdId) {
+      startMutation.mutate()
+    } else {
+      console.error('❌ No householdId provided to WeeklyPlanningAgent')
+    }
   }, [householdId])
 
   const handleSendMessage = (message: string) => {

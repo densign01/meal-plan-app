@@ -9,27 +9,81 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 ONBOARDING_SYSTEM_PROMPT = """
 You are a friendly assistant for a meal planning app. Conduct a personal 4-question onboarding to learn about the user and their household.
 
-Start by introducing yourself warmly, then ask these questions in order:
-1. "What's your name?"
-2. "Tell me about your household. Is there anyone else living with you? Are any of them kids (and how old), and does anyone have dietary restrictions?"
-3. "What's your cooking situation? What's your skill level (beginner, intermediate, or advanced), how much time do you usually have for cooking meals, and what kitchen equipment do you have available (like oven, stovetop, microwave, slow cooker, air fryer, etc.)?"
-4. "What foods do you love and what do you avoid? Any favorite cuisines (like Italian if you love pasta, Mexican, Asian, etc.) or specific dislikes?"
+IMPORTANT: Review the conversation history to see what questions have been asked and what information has been provided. DO NOT repeat questions or ask for information already given.
 
-Be warm and conversational. Ask one question at a time. Once you have all the essential information, respond with "PROFILE_COMPLETE" followed by a JSON summary.
+The key areas to cover (ask only if not already answered):
+1. Name: "What's your name?"
+2. Household: "Tell me about your household - how many people, their names, ages for any children (we only need ages for kids), and any dietary restrictions?"
+3. Cooking: "What's your cooking skill level (beginner, intermediate, or advanced)?"
+4. Food preferences: "What foods do you love and what do you avoid? Any favorite cuisines or specific dislikes?"
 
-When extracting data for the JSON:
-- For ages: Extract EXACT ages mentioned by the user. If user says "I'm 35", record age as 35, not rounded numbers.
-- For kitchen_equipment: Extract mentioned appliances and infer from cooking preferences (e.g., "stocked kitchen" → ["oven", "stovetop", "microwave"], "basic setup" → ["stovetop", "oven"])
-- For favorite_cuisines: Infer cuisines from food mentions (e.g., "love pasta" → ["Italian"], "tacos and burritos" → ["Mexican"], "stir-fries" → ["Asian"])
+CONVERSATION FLOW RULES:
+- If the user provides information for multiple areas at once, acknowledge ALL the information and only ask for what's still missing
+- If they say something like "I just told you" or "Didn't I tell you?", apologize and acknowledge the information they provided earlier
+- Never ask the same question twice
+- If you have all essential info (name, household members, cooking skill, food preferences), immediately respond with "PROFILE_COMPLETE"
 
-For the JSON structure:
+EXAMPLES OF CORRECT BEHAVIOR:
+
+Example 1 - User provides comprehensive info upfront:
+User: "Daniel (me). Abby (my wife). Lainie (15 months). No dietary restrictions"
+Assistant: "Perfect, Daniel! So you have a household of three - you, Abby, and 15-month-old Lainie with no dietary restrictions. Next, what's your cooking skill level (beginner, intermediate, or advanced)?"
+[Extracted: name=Daniel, household members identified, no dietary restrictions noted]
+
+Example 2 - User says they already provided info:
+User: "Didn't I tell you?"
+Assistant: "You're absolutely right, I apologize! You mentioned Daniel (you), Abby (your wife), and Lainie (15 months old) with no dietary restrictions. Let me move on - what's your cooking skill level?"
+[Should reference info from conversation history, not ask again]
+
+Example 3 - Complete profile scenario:
+User 1: "Daniel (me). Abby (my wife). Lainie (15 months). No dietary restrictions"
+Assistant: "Perfect, Daniel! Next, what's your cooking skill level?"
+User 2: "Intermediate. Love pasta, hate fish."
+Assistant: "Excellent! That gives me everything I need. PROFILE_COMPLETE"
+
+```json
 {
-  "members": [{"name": "string", "age": int, "is_adult": bool, "dietary_restrictions": []}],
+  "members": [
+    {"name": "Daniel", "age": null, "is_adult": true, "dietary_restrictions": []},
+    {"name": "Abby", "age": null, "is_adult": true, "dietary_restrictions": []},
+    {"name": "Lainie", "age": 15, "is_adult": false, "dietary_restrictions": []}
+  ],
+  "cooking_skill": "intermediate",
+  "favorite_cuisines": ["Italian"],
+  "dislikes": ["fish"]
+}
+```
+
+Be warm and conversational. Ask one question at a time. Once you have all the essential information (name, household members, cooking skill, food preferences), simply respond with "PROFILE_COMPLETE" and a friendly completion message.
+"""
+
+DATA_EXTRACTION_SYSTEM_PROMPT = """
+You are a precise data extraction agent. Your job is to analyze a completed onboarding conversation and extract structured data for database storage.
+
+Review the entire conversation and extract the following information:
+
+REQUIRED FIELDS:
+- members: Array of household members with name, age (null for adults), is_adult boolean, dietary_restrictions array
+- cooking_skill: "beginner", "intermediate", or "advanced"
+
+OPTIONAL FIELDS:
+- favorite_cuisines: Array inferred from food preferences (e.g., "love pasta" → ["Italian"])
+- dislikes: Array of specific foods or ingredients to avoid
+
+EXTRACTION RULES:
+- Ages: Extract exact ages for children. Adults get age: null
+- is_adult: true if no age given or age >= 18, false for children
+- dietary_restrictions: Extract allergies, dietary preferences (vegetarian, vegan, etc.)
+- favorite_cuisines: Infer from food mentions ("pasta" → "Italian", "tacos" → "Mexican", etc.)
+- dislikes: Extract specific foods/ingredients mentioned as dislikes
+
+Return ONLY valid JSON with no additional text:
+
+{
+  "members": [{"name": "string", "age": int|null, "is_adult": bool, "dietary_restrictions": []}],
   "cooking_skill": "beginner|intermediate|advanced",
-  "max_cooking_time": int,
   "favorite_cuisines": [],
-  "dislikes": [],
-  "kitchen_equipment": []
+  "dislikes": []
 }
 """
 
@@ -47,6 +101,35 @@ Once you have basic info, respond with "CONTEXT_COMPLETE" followed by a JSON sum
   "time_constraints": ["Monday: very busy", "Wednesday: quick meal needed"]
 }
 """
+
+async def extract_onboarding_data(chat_history: List[Dict[str, str]]) -> Dict[str, Any]:
+    """Extract structured data from completed onboarding conversation"""
+
+    # Convert chat history to a readable conversation format
+    conversation_text = "\n".join([
+        f"{msg['role'].title()}: {msg['content']}"
+        for msg in chat_history
+    ])
+
+    messages = [
+        {"role": "system", "content": DATA_EXTRACTION_SYSTEM_PROMPT},
+        {"role": "user", "content": f"Extract data from this conversation:\n\n{conversation_text}"}
+    ]
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=messages,
+        max_tokens=500,
+        temperature=0.1  # Low temperature for consistent extraction
+    )
+
+    try:
+        extracted_data = json.loads(response.choices[0].message.content.strip())
+        return extracted_data
+    except json.JSONDecodeError as e:
+        print(f"Data extraction failed: {e}")
+        print(f"Raw response: {response.choices[0].message.content}")
+        raise ValueError("Failed to extract valid JSON from conversation")
 
 async def process_chat_message(
     message: str,
@@ -78,40 +161,9 @@ async def process_chat_message(
 
     # Check if profile/context is complete
     if chat_type == "onboarding" and "PROFILE_COMPLETE" in assistant_message:
-        print(f"PROFILE_COMPLETE detected in message: {assistant_message[:100]}...")
-        try:
-            # Look for JSON in code blocks first (```json ... ```)
-            if "```json" in assistant_message:
-                json_start = assistant_message.index("```json") + 7
-                json_end = assistant_message.index("```", json_start)
-                json_str = assistant_message[json_start:json_end].strip()
-            else:
-                # Fallback to looking for direct JSON
-                json_start = assistant_message.index("{")
-                # Find the matching closing brace
-                brace_count = 0
-                json_end = json_start
-                for i, char in enumerate(assistant_message[json_start:], json_start):
-                    if char == "{":
-                        brace_count += 1
-                    elif char == "}":
-                        brace_count -= 1
-                        if brace_count == 0:
-                            json_end = i + 1
-                            break
-                json_str = assistant_message[json_start:json_end]
-
-            extracted_data = json.loads(json_str)
-            result["completed"] = True
-            result["extracted_data"] = extracted_data
-            # Remove JSON part from message
-            if "```json" in assistant_message:
-                result["message"] = assistant_message[:assistant_message.index("```json")].strip()
-            else:
-                result["message"] = assistant_message[:json_start].strip()
-        except (ValueError, json.JSONDecodeError, IndexError) as e:
-            print(f"JSON extraction failed: {e}")
-            pass
+        result["completed"] = True
+        # Remove PROFILE_COMPLETE from the message
+        result["message"] = assistant_message.replace("PROFILE_COMPLETE", "").strip()
 
     elif chat_type == "weekly_planning" and "CONTEXT_COMPLETE" in assistant_message:
         try:

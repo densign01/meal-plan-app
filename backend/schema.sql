@@ -1,13 +1,14 @@
 -- Household Profiles Table
 CREATE TABLE household_profiles (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID,
     members JSONB NOT NULL,
     cooking_skill TEXT NOT NULL CHECK (cooking_skill IN ('beginner', 'intermediate', 'advanced')),
-    max_cooking_time INTEGER NOT NULL,
+    max_cooking_time INTEGER, -- Optional: can be set later in preferences
     budget_per_week DECIMAL(10,2),
     favorite_cuisines TEXT[],
     dislikes TEXT[],
-    kitchen_equipment TEXT[],
+    kitchen_equipment TEXT[], -- Optional: can be inferred or set later
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -43,6 +44,7 @@ CREATE TABLE chat_sessions (
 );
 
 -- Indexes for better performance
+CREATE INDEX idx_household_profiles_user_id ON household_profiles(user_id);
 CREATE INDEX idx_meal_plans_household_id ON meal_plans(household_id);
 CREATE INDEX idx_meal_plans_week_start ON meal_plans(week_start_date);
 CREATE INDEX idx_grocery_lists_meal_plan_id ON grocery_lists(meal_plan_id);

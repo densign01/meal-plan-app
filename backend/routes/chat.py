@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Body, Query
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from database import get_supabase_client
-from chat import process_chat_message
+from chat import process_chat_message, extract_onboarding_data
 from services.household_service import HouseholdService
 import uuid
 from datetime import datetime
@@ -82,47 +82,49 @@ async def continue_onboarding(session_id: str, chat_message: ChatMessage, user_i
         "updated_at": datetime.now().isoformat()
     }
 
-    if result["completed"] and result["extracted_data"]:
-        # Create household profile using the service
+    if result["completed"]:
+        # When conversation is complete, use data extraction agent
         try:
+            print("Onboarding conversation completed. Extracting data...")
+            extracted_data = await extract_onboarding_data(chat_history)
+
             # Add user_id to the profile data if provided
             if user_id:
-                result["extracted_data"]["user_id"] = user_id
+                extracted_data["user_id"] = user_id
 
             # Validate required fields
-            required_fields = ["members", "cooking_skill", "max_cooking_time"]
+            required_fields = ["members", "cooking_skill"]
             for field in required_fields:
-                if field not in result["extracted_data"]:
+                if field not in extracted_data:
                     print(f"WARNING: Missing required field '{field}' in extracted data")
 
             # Ensure arrays exist
-            if "favorite_cuisines" not in result["extracted_data"]:
-                result["extracted_data"]["favorite_cuisines"] = []
-            if "dislikes" not in result["extracted_data"]:
-                result["extracted_data"]["dislikes"] = []
-            if "kitchen_equipment" not in result["extracted_data"]:
-                result["extracted_data"]["kitchen_equipment"] = []
+            if "favorite_cuisines" not in extracted_data:
+                extracted_data["favorite_cuisines"] = []
+            if "dislikes" not in extracted_data:
+                extracted_data["dislikes"] = []
 
-            print(f"Attempting to save profile data to Supabase: {result['extracted_data']}")
+            print(f"Attempting to save profile data to Supabase: {extracted_data}")
 
             household_service = HouseholdService()
-            household_id = await household_service.create_household_profile(result["extracted_data"])
+            household_id = await household_service.create_household_profile(extracted_data)
             update_data["household_id"] = household_id
 
             # Add household_id to extracted_data for frontend
-            result["extracted_data"]["id"] = household_id
+            extracted_data["id"] = household_id
+            result["extracted_data"] = extracted_data
 
             print(f"SUCCESS: Created household profile with ID: {household_id}")
 
         except Exception as e:
-            print(f"CRITICAL: Household creation failed: {e}")
-            print(f"Profile data that failed to save: {result['extracted_data']}")
+            print(f"CRITICAL: Data extraction or household creation failed: {e}")
+            print(f"Chat history: {chat_history}")
             import traceback
             print(f"Full error traceback: {traceback.format_exc()}")
             # This is a critical error - profile data not saved to Supabase
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to save profile: {str(e)}"
+                detail=f"Failed to extract data or save profile: {str(e)}"
             )
 
     supabase.table("chat_sessions").update(update_data).eq("id", session_id).execute()

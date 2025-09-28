@@ -45,7 +45,7 @@ function QuickAction({ icon: Icon, title, description, onClick, disabled }: Quic
   )
 }
 
-function WelcomeSection() {
+function WelcomeSection({ onStartMealPlanning }: { onStartMealPlanning: () => void }) {
   const { isOnboardingComplete, householdProfile, setActiveTab } = useAppContext()
 
   const quickActions = [
@@ -53,10 +53,7 @@ function WelcomeSection() {
       icon: Plus,
       title: 'Plan New Week',
       description: 'Start planning meals for a new week',
-      onClick: () => {
-        // This will trigger weekly planning mode
-        window.location.reload() // Temporary - will implement proper state management
-      },
+      onClick: onStartMealPlanning,
       disabled: !isOnboardingComplete
     },
     {
@@ -172,8 +169,11 @@ export default function HomeTab() {
   }
 
   const handleStartMealPlanning = () => {
+    console.log('🚀 Starting meal planning')
+    console.log('📋 Current state:', { isOnboardingComplete, householdId, chatMode, showChat })
     setChatMode('weekly-planning')
     setShowChat(true)
+    console.log('✅ Set chat mode to weekly-planning and showChat to true')
   }
 
   const handleSkipMealPlanning = () => {
@@ -206,7 +206,7 @@ export default function HomeTab() {
     <ErrorBoundary onReset={handleReset}>
       <div className="space-y-8">
         {/* Welcome Section - always visible */}
-        <WelcomeSection />
+        <WelcomeSection onStartMealPlanning={handleStartMealPlanning} />
 
         {/* Chat Section - conditional */}
         {showChat && (
@@ -258,15 +258,31 @@ export default function HomeTab() {
               </div>
             )}
 
-            {chatMode === 'weekly-planning' && householdId && (
-              <WeeklyPlanningAgent
-                householdId={householdId}
-                onComplete={handleWeeklyPlanningComplete}
-                onBack={() => {
-                  setChatMode('onboarding')
-                  setShowChat(true)
-                }}
-              />
+            {chatMode === 'weekly-planning' && (
+              <>
+                {(() => {
+                  console.log('🔍 Weekly planning render check:', { chatMode, householdId, showChat })
+                  return householdId ? (
+                    <WeeklyPlanningAgent
+                      householdId={householdId}
+                      onComplete={handleWeeklyPlanningComplete}
+                      onBack={() => setShowChat(false)}
+                    />
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-red-600 mb-4">
+                        Error: No household profile found. Please complete onboarding first.
+                      </p>
+                      <button
+                        onClick={handleReset}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        Start Over
+                      </button>
+                    </div>
+                  )
+                })()}
+              </>
             )}
 
             {/* Future: meal-modification chat */}
