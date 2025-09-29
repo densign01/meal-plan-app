@@ -376,15 +376,22 @@ async def create_comprehensive_meal_plan(
         weekly_menu = await generate_weekly_menu(household_profile, weekly_constraints)
         print(f"✅ Menu generated: {weekly_menu}")
 
-        # Step 3: Calculate week start date (next Monday)
+        # Step 3: Calculate week start date (upcoming Monday)
         today = datetime.now()
-        days_until_monday = (7 - today.weekday()) % 7  # 0 = Monday
-        if days_until_monday == 0:  # If today is Monday, use today
+        # Calculate days until next Monday (0 = Monday, 6 = Sunday)
+        current_weekday = today.weekday()
+
+        if current_weekday == 0:  # Today is Monday
             week_start = today
         else:
+            # Days until next Monday
+            days_until_monday = (7 - current_weekday) % 7
+            if days_until_monday == 0:  # This shouldn't happen but just in case
+                days_until_monday = 7
             week_start = today + timedelta(days=days_until_monday)
 
         week_start_date = week_start.strftime("%Y-%m-%d")
+        print(f"📅 Calculated week start: {week_start_date} (today is {today.strftime('%Y-%m-%d')}, weekday={current_weekday})")
 
         # Step 4: Assign dates to each day
         day_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
