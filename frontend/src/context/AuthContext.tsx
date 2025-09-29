@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean
   signUp: (email: string, password: string) => Promise<{ user: User | null, error: AuthError | null }>
   signIn: (email: string, password: string) => Promise<{ user: User | null, error: AuthError | null }>
+  signInWithMagicLink: (email: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<{ error: AuthError | null }>
 }
 
@@ -54,6 +55,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { user: data.user, error }
   }
 
+  const signInWithMagicLink = async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin,
+      }
+    })
+    return { error }
+  }
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     return { error }
@@ -65,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     signUp,
     signIn,
+    signInWithMagicLink,
     signOut,
   }
 
