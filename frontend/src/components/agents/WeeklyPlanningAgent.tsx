@@ -52,7 +52,7 @@ export default function WeeklyPlanningAgent({
 
       // Only add the assistant message - user message already added in handleSendMessage
       setMessages(prev => {
-        const newMessages = [...prev, { role: 'assistant' as const, content: data.message }]
+        const newMessages: ChatMessage[] = [...prev, { role: 'assistant' as const, content: data.message }]
         console.log('📊 Messages after adding assistant response:', newMessages.length)
         return newMessages
       })
@@ -125,7 +125,7 @@ export default function WeeklyPlanningAgent({
       // Add the meal plan as an inline chat message
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: mealPlanMessage }
+        { role: 'assistant' as const, content: mealPlanMessage }
       ])
 
       // Don't automatically call onComplete - let user decide when to transition
@@ -161,7 +161,7 @@ export default function WeeklyPlanningAgent({
 
     // Add user message to chat
     setMessages(prev => {
-      const newMessages = [...prev, { role: 'user', content: message }]
+      const newMessages: ChatMessage[] = [...prev, { role: 'user' as const, content: message }]
       console.log('📊 Messages after adding user message:', newMessages.length)
       return newMessages
     })
