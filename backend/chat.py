@@ -297,7 +297,10 @@ Generate a balanced, varied weekly menu following the guidelines in your system 
                 }
                 print(f"✅ Recipe generated for {day}")
             except Exception as e:
-                print(f"⚠️ Failed to generate recipe for {day}, using simple title: {e}")
+                print(f"⚠️ Failed to generate recipe for {day}, using simple title")
+                print(f"❌ Full error: {type(e).__name__}: {str(e)}")
+                import traceback
+                print(f"❌ Traceback: {traceback.format_exc()}")
                 # Fallback to simple title if recipe generation fails
                 detailed_menu[day] = {"name": meal_title, "type": "simple_title"}
 

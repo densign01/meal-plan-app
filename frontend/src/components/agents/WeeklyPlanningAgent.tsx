@@ -86,11 +86,8 @@ export default function WeeklyPlanningAgent({
   // Generate meal plan mutation using three-agent workflow
   const generateMealPlanMutation = useMutation({
     mutationFn: async (chatHistory: any) => {
+      console.log('🍳 Starting meal plan generation...')
       setIsGeneratingMealPlan(true)
-      setMessages(prev => [
-        ...prev,
-        { role: 'assistant', content: 'Perfect! Now let me create your personalized meal plan...' }
-      ])
 
       // Step 1: Get household profile
       const householdProfile = await MealPlanAPI.getHouseholdProfile(householdId)
