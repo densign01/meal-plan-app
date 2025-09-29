@@ -3,8 +3,10 @@ import json
 import os
 from typing import List, Dict, Any
 from models import HouseholdProfile, HouseholdMember, CookingSkill, DietaryRestriction
+from services.recipe_service import RecipeService
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+recipe_service = RecipeService()
 
 ONBOARDING_SYSTEM_PROMPT = """
 You are a friendly assistant for a meal planning app. Conduct a personal 4-question onboarding to learn about the user and their household.
@@ -232,8 +234,9 @@ async def parse_weekly_constraints(chat_history: List[Dict[str, str]]) -> Dict[s
         raise ValueError("Failed to extract valid JSON from weekly conversation")
 
 async def generate_weekly_menu(household_profile: Dict[str, Any], weekly_constraints: Dict[str, Any]) -> Dict[str, Any]:
-    """Generate balanced weekly menu using household profile and constraints"""
+    """Generate balanced weekly menu using household profile and constraints with detailed recipes"""
 
+    # Step 1: Generate meal titles using Menu Generation Agent
     prompt = f"""
 HOUSEHOLD PROFILE:
 {json.dumps(household_profile, indent=2)}
@@ -257,8 +260,49 @@ Generate a balanced, varied weekly menu following the guidelines in your system 
     )
 
     try:
-        menu = json.loads(response.choices[0].message.content.strip())
-        return menu
+        menu_titles = json.loads(response.choices[0].message.content.strip())
+
+        # Step 2: Use RecipeAgent to generate detailed recipes for each meal
+        detailed_menu = {}
+        for day, meal_title in menu_titles.items():
+            # Skip days with no cooking
+            if meal_title in ["Dining Out", "No Cooking Planned"]:
+                detailed_menu[day] = {"name": meal_title, "type": "no_cooking"}
+                continue
+
+            # Get constraints for this day
+            day_constraints = weekly_constraints.get(day, {})
+
+            # Infer cuisine and meal type from title
+            cuisine_hint = household_profile.get('favorite_cuisines', ['American'])[0] if household_profile.get('favorite_cuisines') else 'American'
+
+            # Prepare requirements for RecipeAgent
+            requirements = {
+                "meal_type": "dinner",
+                "cuisine": cuisine_hint,
+                "dietary_restrictions": household_profile.get('dislikes', []),
+                "max_cooking_time": 30 if day_constraints.get('complexity') == 'simple' else 45,
+                "skill_level": household_profile.get('cooking_skill', 'intermediate'),
+                "servings": len(household_profile.get('members', [])) or 4,
+                "special_requests": f"Create a recipe for: {meal_title}. Constraints: {day_constraints.get('notes', 'None')}"
+            }
+
+            try:
+                print(f"🍳 Generating detailed recipe for {day}: {meal_title}")
+                recipe = await recipe_service.develop_recipe(requirements, household_profile)
+                detailed_menu[day] = {
+                    "name": meal_title,
+                    "recipe": recipe,
+                    "type": "cooked_meal"
+                }
+                print(f"✅ Recipe generated for {day}")
+            except Exception as e:
+                print(f"⚠️ Failed to generate recipe for {day}, using simple title: {e}")
+                # Fallback to simple title if recipe generation fails
+                detailed_menu[day] = {"name": meal_title, "type": "simple_title"}
+
+        return detailed_menu
+
     except json.JSONDecodeError as e:
         print(f"Menu generation failed: {e}")
         print(f"Raw response: {response.choices[0].message.content}")

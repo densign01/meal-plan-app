@@ -101,15 +101,23 @@ export default function WeeklyPlanningAgent({
       setIsGeneratingMealPlan(false)
 
       // Create meal plan display message with proper formatting
-      let mealPlanMessage = "Here's your personalized meal plan!\n\n"
+      let mealPlanMessage = "Here's your personalized meal plan with detailed recipes!\n\n"
       if (mealPlanData?.meals) {
         Object.entries(mealPlanData.meals).forEach(([day, meal]: [string, any]) => {
           const dayName = day.charAt(0).toUpperCase() + day.slice(1)
           const mealName = meal?.name || meal || 'No meal planned'
-          mealPlanMessage += `${dayName}: ${mealName}\n`
+
+          // Show if it has detailed recipe
+          if (meal?.recipe && meal?.type === 'cooked_meal') {
+            const recipe = meal.recipe
+            mealPlanMessage += `${dayName}: ${mealName}\n`
+            mealPlanMessage += `  ⏱️ ${recipe.total_time || recipe.prep_time + recipe.cook_time}min | 🍽️ ${recipe.servings} servings\n`
+          } else {
+            mealPlanMessage += `${dayName}: ${mealName}\n`
+          }
         })
       }
-      mealPlanMessage += "\nWould you like to view the full meal plan with recipes and details?"
+      mealPlanMessage += "\n📅 Click 'View Full Meal Plan' below to see complete recipes with ingredients and instructions!"
 
       // Add the meal plan as an inline chat message
       setMessages(prev => [

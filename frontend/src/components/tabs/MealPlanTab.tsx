@@ -83,6 +83,11 @@ interface DayCardProps {
 }
 
 function DayCard({ day, recipe, onEditRecipe, onRemoveRecipe }: DayCardProps) {
+  // Handle both old format (simple meal object) and new format (with recipe details)
+  const mealData = recipe as any
+  const isNoCooking = mealData?.type === 'no_cooking' || mealData?.name === 'Dining Out' || mealData?.name === 'No Cooking Planned'
+  const hasDetailedRecipe = mealData?.recipe && mealData?.type === 'cooked_meal'
+
   return (
     <div className="border-2 border-gray-200 rounded-lg p-4 min-h-[200px] bg-gray-50">
       <div className="flex justify-between items-center mb-4">
@@ -90,11 +95,23 @@ function DayCard({ day, recipe, onEditRecipe, onRemoveRecipe }: DayCardProps) {
       </div>
 
       {recipe ? (
-        <RecipeCard
-          recipe={recipe}
-          onEdit={onEditRecipe}
-          onRemove={onRemoveRecipe}
-        />
+        isNoCooking ? (
+          <div className="flex flex-col items-center justify-center h-32 text-gray-500">
+            <Calendar className="w-8 h-8 mb-2" />
+            <p className="text-sm font-medium">{mealData.name}</p>
+          </div>
+        ) : hasDetailedRecipe ? (
+          <RecipeCard
+            recipe={mealData.recipe}
+            onEdit={onEditRecipe}
+            onRemove={onRemoveRecipe}
+          />
+        ) : (
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <h4 className="font-semibold text-gray-900 text-sm">{mealData.name || 'Meal planned'}</h4>
+            <p className="text-xs text-gray-500 mt-1">Recipe details coming soon</p>
+          </div>
+        )
       ) : (
         <div className="flex flex-col items-center justify-center h-32 text-gray-400">
           <ChefHat className="w-8 h-8 mb-2" />
@@ -206,9 +223,12 @@ export default function MealPlanTab() {
             recipe={workingMealPlan.meals[day.key] || null}
             onRemoveRecipe={() => handleRemoveRecipe(day.key)}
             onEditRecipe={() => {
-              const recipe = workingMealPlan.meals[day.key]
-              if (recipe) {
-                setEditingRecipe({ day: day.key, recipe })
+              const mealData = workingMealPlan.meals[day.key] as any
+              if (mealData?.recipe) {
+                setEditingRecipe({ day: day.key, recipe: mealData.recipe })
+              } else if (mealData) {
+                // Fallback for simple meal without detailed recipe
+                console.log('No detailed recipe available for', day.key)
               }
             }}
           />
