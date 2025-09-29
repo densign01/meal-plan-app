@@ -4,13 +4,13 @@ import { Calendar, ArrowLeft, Clock, Users, ChefHat, Edit2, Trash2 } from 'lucid
 import type { Recipe } from '../../types'
 
 const DAYS = [
+  { key: 'sunday', label: 'Sunday' },
   { key: 'monday', label: 'Monday' },
   { key: 'tuesday', label: 'Tuesday' },
   { key: 'wednesday', label: 'Wednesday' },
   { key: 'thursday', label: 'Thursday' },
   { key: 'friday', label: 'Friday' },
-  { key: 'saturday', label: 'Saturday' },
-  { key: 'sunday', label: 'Sunday' }
+  { key: 'saturday', label: 'Saturday' }
 ]
 
 interface RecipeCardProps {
