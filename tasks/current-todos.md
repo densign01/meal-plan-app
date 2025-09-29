@@ -20,13 +20,13 @@
 16. **Fix AI hallucinating meal plan details** - Enhanced agent prompts to strictly follow user constraints without adding fictional details
 17. **Display meal plan inline in chat** - Moved meal plan from separate component to natural chat conversation flow
 18. **Integrate RecipeAgent into meal planning workflow** - RecipeAgent now generates detailed recipes with ingredients, instructions, timing, and nutritional info for each meal
+19. **Implement full ProfileTab for household management** - Built comprehensive profile editing interface with inline editing for members, cooking preferences, favorite cuisines, and food dislikes
 
 ## Pending Tasks 🚧
 
 13. **Implement full MealPlanTab with drag/drop calendar** - Build interactive weekly meal calendar with drag-and-drop functionality
 14. **Implement full GroceryTab with enhanced list management** - Create comprehensive grocery list management with categories and checking
-15. **Implement full ProfileTab for household management** - Build household profile editing interface with member management
-16. **Implement AI SDK message persistence** - Add proper chat message persistence following `tasks/ai-sdk-message-persistance.md` patterns for conversation continuity across sessions
+15. **Implement AI SDK message persistence** - Add proper chat message persistence following `tasks/ai-sdk-message-persistance.md` patterns for conversation continuity across sessions
 
 ## Next Steps 🎯
 
