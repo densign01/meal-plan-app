@@ -47,14 +47,19 @@ export default function WeeklyPlanningAgent({
     mutationFn: ({ sessionId, message }: { sessionId: string; message: string }) =>
       MealPlanAPI.continueWeeklyPlanning(sessionId, message),
     onSuccess: (data, variables) => {
+      console.log('✅ API Response received:', data)
+      console.log('📊 Messages before adding assistant response:', messages.length)
+
       // Only add the assistant message - user message already added in handleSendMessage
-      setMessages(prev => [
-        ...prev,
-        { role: 'assistant' as const, content: data.message }
-      ])
+      setMessages(prev => {
+        const newMessages = [...prev, { role: 'assistant' as const, content: data.message }]
+        console.log('📊 Messages after adding assistant response:', newMessages.length)
+        return newMessages
+      })
 
       // Check if weekly planning is complete
       if (data.completed) {
+        console.log('🎉 Weekly planning completed!')
         setIsCompleted(true)
         // Get current messages including the ones we just added
         const fullChatHistory = [
@@ -62,6 +67,7 @@ export default function WeeklyPlanningAgent({
           { role: 'user' as const, content: variables.message },
           { role: 'assistant' as const, content: data.message }
         ]
+        console.log('📋 Full chat history for meal plan generation:', fullChatHistory.length, 'messages')
         generateMealPlanMutation.mutate(fullChatHistory)
       }
     },
@@ -153,8 +159,15 @@ export default function WeeklyPlanningAgent({
   const handleSendMessage = (message: string) => {
     if (!sessionId || isCompleted) return
 
+    console.log('🚀 WeeklyPlanningAgent - Sending message:', message)
+    console.log('📊 Current messages before adding user message:', messages.length)
+
     // Add user message to chat
-    setMessages(prev => [...prev, { role: 'user', content: message }])
+    setMessages(prev => {
+      const newMessages = [...prev, { role: 'user', content: message }]
+      console.log('📊 Messages after adding user message:', newMessages.length)
+      return newMessages
+    })
 
     // Send to backend
     continueMutation.mutate({ sessionId, message })

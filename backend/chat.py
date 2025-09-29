@@ -360,6 +360,7 @@ async def create_comprehensive_meal_plan(
     2. Generate balanced menu (Menu Generation Agent)
     3. Return comprehensive meal plan
     """
+    from datetime import datetime, timedelta
 
     try:
         # Step 1: Parse weekly constraints using Admin Agent
@@ -372,12 +373,37 @@ async def create_comprehensive_meal_plan(
         weekly_menu = await generate_weekly_menu(household_profile, weekly_constraints)
         print(f"✅ Menu generated: {weekly_menu}")
 
-        # Step 3: Create comprehensive meal plan structure
+        # Step 3: Calculate week start date (next Monday)
+        today = datetime.now()
+        days_until_monday = (7 - today.weekday()) % 7  # 0 = Monday
+        if days_until_monday == 0:  # If today is Monday, use today
+            week_start = today
+        else:
+            week_start = today + timedelta(days=days_until_monday)
+
+        week_start_date = week_start.strftime("%Y-%m-%d")
+
+        # Step 4: Assign dates to each day
+        day_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        meals_with_dates = {}
+
+        for i, day in enumerate(day_order):
+            if day in weekly_menu:
+                meal_date = (week_start + timedelta(days=i)).strftime("%Y-%m-%d")
+                meal_data = weekly_menu[day]
+                if isinstance(meal_data, dict):
+                    meal_data['date'] = meal_date
+                else:
+                    meal_data = {'name': meal_data, 'date': meal_date}
+                meals_with_dates[day] = meal_data
+
+        # Step 5: Create comprehensive meal plan structure
         meal_plan = {
             "household_id": household_id,
-            "meals": weekly_menu,
+            "meals": meals_with_dates,
             "constraints": weekly_constraints,
-            "generated_at": "2024-01-01",  # Will be replaced with actual timestamp
+            "week_start_date": week_start_date,
+            "generated_at": datetime.now().isoformat(),
             "status": "active"
         }
 

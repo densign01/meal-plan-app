@@ -88,10 +88,26 @@ function DayCard({ day, recipe, onEditRecipe, onRemoveRecipe }: DayCardProps) {
   const isNoCooking = mealData?.type === 'no_cooking' || mealData?.name === 'Dining Out' || mealData?.name === 'No Cooking Planned'
   const hasDetailedRecipe = mealData?.recipe && mealData?.type === 'cooked_meal'
 
+  // Format date if available
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return ''
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })
+    } catch {
+      return ''
+    }
+  }
+
   return (
     <div className="border-2 border-gray-200 rounded-lg p-4 min-h-[200px] bg-gray-50">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-semibold text-gray-900">{day.label}</h3>
+      <div className="flex flex-col mb-4">
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold text-gray-900">{day.label}</h3>
+        </div>
+        {mealData?.date && (
+          <p className="text-sm text-gray-500 mt-1">{formatDate(mealData.date)}</p>
+        )}
       </div>
 
       {recipe ? (

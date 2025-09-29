@@ -26,6 +26,11 @@ export default function ChatInterface({
 
   useEffect(() => {
     scrollToBottom()
+    // DEBUG: Log messages to help diagnose duplication
+    console.log('📝 ChatInterface messages updated:', {
+      count: messages.length,
+      messages: messages.map((m, i) => ({ index: i, role: m.role, preview: m.content.substring(0, 50) }))
+    })
   }, [messages])
 
   const handleSubmit = (e: React.FormEvent) => {
