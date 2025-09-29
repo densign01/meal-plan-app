@@ -109,7 +109,8 @@ export default function HomeTab() {
     setHouseholdId,
     setHouseholdProfile,
     setActiveTab,
-    resetAppState
+    resetAppState,
+    setCurrentMealPlan
   } = useAppContext()
 
   const { user } = useAuth()
@@ -158,6 +159,9 @@ export default function HomeTab() {
   const handleWeeklyPlanningComplete = (mealPlan: any) => {
     // Weekly planning and meal plan generation completed, transition to meal plan tab
     console.log('📅 Weekly planning and meal plan generation completed:', mealPlan)
+
+    // Save the meal plan to AppContext so MealPlanTab can access it
+    setCurrentMealPlan(mealPlan)
 
     // Hide chat and go to meal plan tab
     setShowChat(false)

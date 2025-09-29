@@ -42,7 +42,7 @@ export default function ChatInterface({
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
           <div
-            key={index}
+            key={`${message.role}-${index}-${message.content.substring(0, 20)}`}
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div

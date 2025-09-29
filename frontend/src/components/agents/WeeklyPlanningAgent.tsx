@@ -47,19 +47,22 @@ export default function WeeklyPlanningAgent({
     mutationFn: ({ sessionId, message }: { sessionId: string; message: string }) =>
       MealPlanAPI.continueWeeklyPlanning(sessionId, message),
     onSuccess: (data, variables) => {
-      const updatedMessages: ChatMessage[] = [
-        ...messages,
-        { role: 'user' as const, content: variables.message },
+      // Only add the assistant message - user message already added in handleSendMessage
+      setMessages(prev => [
+        ...prev,
         { role: 'assistant' as const, content: data.message }
-      ]
-
-      setMessages(updatedMessages)
+      ])
 
       // Check if weekly planning is complete
       if (data.completed) {
         setIsCompleted(true)
-        // Start meal plan generation automatically with full chat history
-        generateMealPlanMutation.mutate(updatedMessages)
+        // Get current messages including the ones we just added
+        const fullChatHistory = [
+          ...messages,
+          { role: 'user' as const, content: variables.message },
+          { role: 'assistant' as const, content: data.message }
+        ]
+        generateMealPlanMutation.mutate(fullChatHistory)
       }
     },
     onError: (error) => {
@@ -108,10 +111,10 @@ export default function WeeklyPlanningAgent({
       }
       mealPlanMessage += "\nWould you like to view the full meal plan with recipes and details?"
 
-      // Add a simple text message first
+      // Add the meal plan as an inline chat message
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: "Here's your personalized meal plan!" }
+        { role: 'assistant', content: mealPlanMessage }
       ])
 
       // Don't automatically call onComplete - let user decide when to transition
@@ -180,33 +183,13 @@ export default function WeeklyPlanningAgent({
       />
 
       {mealPlan && (
-        <div className="space-y-4">
-          {/* Meal Plan Display */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h4 className="font-semibold text-gray-900 mb-4">Your Weekly Meal Plan:</h4>
-            <div className="space-y-2">
-              {mealPlan?.meals && Object.entries(mealPlan.meals).map(([day, meal]: [string, any]) => (
-                <div key={day} className="flex">
-                  <span className="font-semibold text-gray-900 capitalize min-w-[100px]">
-                    {day}:
-                  </span>
-                  <span className="text-gray-700 ml-2">
-                    {meal?.name || meal || 'No meal planned'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="text-center">
-            <button
-              onClick={() => onComplete(mealPlan)}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              📅 View Full Meal Plan
-            </button>
-          </div>
+        <div className="text-center">
+          <button
+            onClick={() => onComplete(mealPlan)}
+            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            📅 View Full Meal Plan
+          </button>
         </div>
       )}
 
