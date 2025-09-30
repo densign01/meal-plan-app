@@ -24,9 +24,13 @@ export default function ProfileTab() {
   const updateProfileMutation = useMutation({
     mutationFn: async (updates: Partial<HouseholdProfile>) => {
       if (!householdProfile?.id) throw new Error('No household ID')
-      return MealPlanAPI.updateHouseholdProfile(householdProfile.id, updates)
+      console.log('🔄 Updating profile:', householdProfile.id, updates)
+      const response = await MealPlanAPI.updateHouseholdProfile(householdProfile.id, updates)
+      console.log('✅ Profile update response:', response)
+      return response
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('✅ Profile update successful:', data)
       if (editedProfile) {
         setHouseholdProfile(editedProfile)
       }
@@ -35,6 +39,7 @@ export default function ProfileTab() {
       queryClient.invalidateQueries({ queryKey: ['household-profile'] })
     },
     onError: (error: any) => {
+      console.error('❌ Profile update failed:', error)
       setErrors({ general: error.message || 'Failed to update profile' })
     }
   })

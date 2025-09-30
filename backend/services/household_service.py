@@ -45,7 +45,9 @@ class HouseholdService:
 
         updates["updated_at"] = datetime.now().isoformat()
 
+        print(f"🔄 Updating household profile {household_id} with updates: {updates}")
         result = self.supabase.table("household_profiles").update(updates).eq("id", household_id).execute()
+        print(f"✅ Update result: {result.data}")
 
         return bool(result.data)
 
