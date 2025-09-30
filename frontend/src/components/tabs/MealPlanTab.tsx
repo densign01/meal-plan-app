@@ -279,18 +279,24 @@ export default function MealPlanTab() {
 
               {/* Meta Information */}
               <div className="flex flex-wrap items-center gap-3 mb-4 pb-4 border-b border-gray-200">
-                <div className="flex items-center space-x-1 text-sm text-gray-600">
-                  <Clock className="w-4 h-4" />
-                  <span>Prep: {editingRecipe.recipe.prep_time}min</span>
-                </div>
-                <div className="flex items-center space-x-1 text-sm text-gray-600">
-                  <Clock className="w-4 h-4" />
-                  <span>Cook: {editingRecipe.recipe.cook_time}min</span>
-                </div>
-                <div className="flex items-center space-x-1 text-sm text-gray-600">
-                  <Users className="w-4 h-4" />
-                  <span>Serves {editingRecipe.recipe.servings}</span>
-                </div>
+                {editingRecipe.recipe.prep_time && (
+                  <div className="flex items-center space-x-1 text-sm text-gray-600">
+                    <Clock className="w-4 h-4" />
+                    <span>Prep: {editingRecipe.recipe.prep_time}min</span>
+                  </div>
+                )}
+                {editingRecipe.recipe.cook_time && (
+                  <div className="flex items-center space-x-1 text-sm text-gray-600">
+                    <Clock className="w-4 h-4" />
+                    <span>Cook: {editingRecipe.recipe.cook_time}min</span>
+                  </div>
+                )}
+                {editingRecipe.recipe.servings && (
+                  <div className="flex items-center space-x-1 text-sm text-gray-600">
+                    <Users className="w-4 h-4" />
+                    <span>Serves {editingRecipe.recipe.servings}</span>
+                  </div>
+                )}
                 {editingRecipe.recipe.difficulty && (
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                     editingRecipe.recipe.difficulty === 'beginner' ? 'bg-green-100 text-green-700' :
