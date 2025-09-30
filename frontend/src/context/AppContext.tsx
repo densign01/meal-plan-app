@@ -93,7 +93,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
   // Load existing household data when user authenticates
   useEffect(() => {
     const loadUserData = async () => {
-      if (user && !householdId && !householdProfile) {
+      if (user) {
         console.log('AppContext: Loading user data for:', user.id)
         try {
           // Try to fetch existing household profile by user ID
@@ -106,7 +106,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
               setHouseholdId(profileId)
               setHouseholdProfile(profile)
 
-              // Also load their recent meal plans
+              // Always load their recent meal plans (even if we already have one, refresh from DB)
               try {
                 const { meal_plans } = await MealPlanAPI.getHouseholdMealPlans(profileId)
                 if (meal_plans.length > 0) {
@@ -125,7 +125,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
     }
 
     loadUserData()
-  }, [user]) // Remove householdId and householdProfile from dependencies to avoid loop
+  }, [user]) // Only depend on user to reload data whenever user changes
 
   // DEBUG: Track user state changes without any clearing logic
   useEffect(() => {
