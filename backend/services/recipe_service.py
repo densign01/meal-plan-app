@@ -205,7 +205,7 @@ class RecipeService:
         )
 
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Using available OpenAI model
+            model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": "You are a professional recipe developer. Always respond with valid JSON only. Focus on practical, achievable recipes that real families will cook."},
                 {"role": "user", "content": prompt}
@@ -244,7 +244,7 @@ class RecipeService:
         )
 
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": "You are a culinary expert specializing in recipe adaptation. Always respond with valid JSON only."},
                 {"role": "user", "content": prompt}
@@ -294,7 +294,7 @@ class RecipeService:
         )
 
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": "You are a recipe research specialist. Always respond with valid JSON only. Focus on recipes that families actually want to cook."},
                 {"role": "user", "content": prompt}
