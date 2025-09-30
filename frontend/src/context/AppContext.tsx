@@ -1,10 +1,9 @@
-// Backwards compatibility layer for old AppContext
-// This maintains the old API while delegating to new focused contexts
-import { createContext, useContext, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import type { MealPlan, GroceryList, HouseholdProfile } from '../types'
-import { useNavigation, type TabType } from './NavigationContext'
-import { useHousehold } from './HouseholdContext'
-import { useMealPlan } from './MealPlanContext'
+import { MealPlanAPI } from '../services/api'
+import { useAuth } from './AuthContext'
+
+export type TabType = 'home' | 'meal-plan' | 'grocery' | 'profile'
 
 interface AppContextType {
   // Tab management
@@ -36,49 +35,172 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export function AppContextProvider({ children }: { children: ReactNode }) {
-  const navigation = useNavigation()
-  const household = useHousehold()
-  const mealPlan = useMealPlan()
+  const [activeTab, setActiveTab] = useState<TabType>('home')
+  const [householdId, setHouseholdId] = useState<string | null>(() => {
+    // Try to restore from localStorage on initial load
+    try {
+      return localStorage.getItem('householdId')
+    } catch {
+      return null
+    }
+  })
+  const [currentMealPlan, setCurrentMealPlan] = useState<MealPlan | null>(null)
+  const [currentGroceryList, setCurrentGroceryList] = useState<GroceryList | null>(null)
+  const [householdProfile, setHouseholdProfile] = useState<HouseholdProfile | null>(() => {
+    // Try to restore from localStorage on initial load
+    try {
+      const stored = localStorage.getItem('householdProfile')
+      return stored ? JSON.parse(stored) : null
+    } catch {
+      return null
+    }
+  })
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false)
+  const [selectedMealDay, setSelectedMealDay] = useState('monday')
+
+  const { user } = useAuth()
+
+  // Persist householdId to localStorage when it changes
+  useEffect(() => {
+    try {
+      if (householdId) {
+        localStorage.setItem('householdId', householdId)
+        console.log('AppContext: Saved householdId to localStorage:', householdId)
+      } else {
+        localStorage.removeItem('householdId')
+        console.log('AppContext: Removed householdId from localStorage')
+      }
+    } catch (error) {
+      console.warn('AppContext: Failed to persist householdId:', error)
+    }
+  }, [householdId])
+
+  // Persist householdProfile to localStorage when it changes
+  useEffect(() => {
+    try {
+      if (householdProfile) {
+        localStorage.setItem('householdProfile', JSON.stringify(householdProfile))
+        console.log('AppContext: Saved householdProfile to localStorage')
+      } else {
+        localStorage.removeItem('householdProfile')
+        console.log('AppContext: Removed householdProfile from localStorage')
+      }
+    } catch (error) {
+      console.warn('AppContext: Failed to persist householdProfile:', error)
+    }
+  }, [householdProfile])
+
+  // Load existing household data when user authenticates
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (user) {
+        console.log('AppContext: Loading user data for:', user.id)
+        try {
+          // Try to fetch existing household profile by user ID
+          const profile = await MealPlanAPI.getHouseholdProfileByUserId(user.id)
+
+          if (profile) {
+            console.log('AppContext: Found existing household profile:', profile)
+            const profileId = profile.id
+            if (profileId) {
+              setHouseholdId(profileId)
+              setHouseholdProfile(profile)
+
+              // Always load their recent meal plans (even if we already have one, refresh from DB)
+              try {
+                const { meal_plans } = await MealPlanAPI.getHouseholdMealPlans(profileId)
+                if (meal_plans.length > 0) {
+                  setCurrentMealPlan(meal_plans[0]) // Most recent
+                }
+              } catch (error) {
+                console.log('AppContext: No meal plans found (this is ok):', error)
+              }
+            }
+          }
+        } catch (error) {
+          // User doesn't have a household profile yet, they need onboarding
+          console.log('AppContext: No existing household profile found, user needs onboarding:', error)
+        }
+      }
+    }
+
+    loadUserData()
+  }, [user]) // Only depend on user to reload data whenever user changes
+
+  // DEBUG: Track user state changes without any clearing logic
+  useEffect(() => {
+    console.log('🔍 DEBUG: User changed', { user: !!user, id: user?.id })
+    console.log('🚀 VERCEL BUILD CHECK: This message proves new code is deployed!')
+  }, [user])
+
+  // Auto-determine onboarding completion
+  useEffect(() => {
+    console.log('AppContext: Checking onboarding completion:', { householdId, householdProfile: !!householdProfile })
+    if (householdId && householdProfile) {
+      console.log('AppContext: Setting onboarding complete = true')
+      setIsOnboardingComplete(true)
+    } else {
+      console.log('AppContext: Setting onboarding complete = false')
+      setIsOnboardingComplete(false)
+    }
+  }, [householdId, householdProfile])
+
+  // Allow navigation to all tabs regardless of onboarding status
+  // Individual tabs will handle their own onboarding state display
+
+  const hasActiveMealPlan = () => {
+    return currentMealPlan !== null
+  }
+
+  const hasActiveGroceryList = () => {
+    return currentGroceryList !== null
+  }
+
+  const resetAppState = () => {
+    console.log('AppContext: Resetting app state')
+    setHouseholdId(null)
+    setCurrentMealPlan(null)
+    setCurrentGroceryList(null)
+    setHouseholdProfile(null)
+    setIsOnboardingComplete(false)
+    setActiveTab('home')
+    setSelectedMealDay('monday')
+
+    // Clear localStorage
+    try {
+      localStorage.removeItem('householdId')
+      localStorage.removeItem('householdProfile')
+      console.log('AppContext: Cleared localStorage')
+    } catch (error) {
+      console.warn('AppContext: Failed to clear localStorage:', error)
+    }
+  }
 
   const value: AppContextType = {
     // Tab management
-    activeTab: navigation.activeTab,
-    setActiveTab: navigation.setActiveTab,
+    activeTab,
+    setActiveTab,
 
     // Cross-tab data
-    householdId: household.householdId,
-    setHouseholdId: () => {
-      // Now managed by React Query, refetch instead
-      household.refetch()
-    },
-    currentMealPlan: mealPlan.currentMealPlan,
-    setCurrentMealPlan: mealPlan.setCurrentMealPlan,
-    currentGroceryList: mealPlan.currentGroceryList,
-    setCurrentGroceryList: mealPlan.setCurrentGroceryList,
-    householdProfile: household.householdProfile,
-    setHouseholdProfile: async (profile: HouseholdProfile | null) => {
-      if (profile) {
-        await household.updateProfile(profile)
-      }
-    },
+    householdId,
+    setHouseholdId,
+    currentMealPlan,
+    setCurrentMealPlan,
+    currentGroceryList,
+    setCurrentGroceryList,
+    householdProfile,
+    setHouseholdProfile,
 
     // UI state
-    isOnboardingComplete: household.isOnboardingComplete,
-    setIsOnboardingComplete: () => {
-      // No-op, now derived from household state
-    },
-    selectedMealDay: navigation.selectedMealDay,
-    setSelectedMealDay: navigation.setSelectedMealDay,
+    isOnboardingComplete,
+    setIsOnboardingComplete,
+    selectedMealDay,
+    setSelectedMealDay,
 
     // Helper methods
-    hasActiveMealPlan: mealPlan.hasActiveMealPlan,
-    hasActiveGroceryList: mealPlan.hasActiveGroceryList,
-    resetAppState: () => {
-      // Clear all state by refetching with null user
-      navigation.setActiveTab('home')
-      navigation.setSelectedMealDay('monday')
-      // Query cache will be cleared on logout via AuthContext
-    },
+    hasActiveMealPlan,
+    hasActiveGroceryList,
+    resetAppState,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
@@ -91,5 +213,3 @@ export function useAppContext() {
   }
   return context
 }
-
-export type { TabType }
