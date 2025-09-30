@@ -229,6 +229,14 @@ class RecipeService:
             raw_content = response.choices[0].message.content
             print(f"📋 Raw AI response: {raw_content[:500]}...")  # Log first 500 chars
 
+            # Strip markdown code blocks if present
+            if raw_content.startswith('```'):
+                # Remove ```json or ``` at start and ``` at end
+                raw_content = raw_content.split('```')[1]
+                if raw_content.startswith('json'):
+                    raw_content = raw_content[4:]
+                raw_content = raw_content.strip()
+
             recipe = json.loads(raw_content)
 
             print(f"✅ Successfully parsed recipe JSON with keys: {recipe.keys()}")
@@ -322,7 +330,16 @@ class RecipeService:
         )
 
         try:
-            recipe = json.loads(response.choices[0].message.content)
+            raw_content = response.choices[0].message.content
+
+            # Strip markdown code blocks if present
+            if raw_content.startswith('```'):
+                raw_content = raw_content.split('```')[1]
+                if raw_content.startswith('json'):
+                    raw_content = raw_content[4:]
+                raw_content = raw_content.strip()
+
+            recipe = json.loads(raw_content)
 
             # Add metadata
             recipe['id'] = str(uuid.uuid4())
