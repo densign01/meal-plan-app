@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AppContextProvider } from './context/AppContext'
+import { AppContextProvider, useAppContext } from './context/AppContext'
 import { AuthProvider } from './context/AuthContext'
 import TabNavigation from './components/TabNavigation'
 import TabContent from './components/TabContent'
@@ -12,10 +12,12 @@ const queryClient = new QueryClient()
 
 function HeaderAuth() {
   const { user, signOut, loading } = useAuth()
+  const { resetAppState } = useAppContext()
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
+    resetAppState() // Clear all app state and localStorage
   }
 
   if (loading) {
