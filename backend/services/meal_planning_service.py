@@ -113,6 +113,14 @@ class MealPlanningService:
             "weekly_context": json.dumps(weekly_context)
         }
 
+        print(f"📦 Saving meal plan with meals structure:")
+        for day, meal in meals.items():
+            if isinstance(meal, dict):
+                print(f"   {day}: type={meal.get('type')}, has_recipe={('recipe' in meal)}")
+                if 'recipe' in meal and meal['recipe']:
+                    recipe = meal['recipe']
+                    print(f"      recipe keys: {list(recipe.keys()) if isinstance(recipe, dict) else 'not a dict'}")
+
         result = self.supabase.table("meal_plans").insert(meal_plan_data).execute()
 
         if result.data:

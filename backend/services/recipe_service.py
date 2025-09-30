@@ -215,7 +215,12 @@ class RecipeService:
         )
 
         try:
-            recipe = json.loads(response.choices[0].message.content)
+            raw_content = response.choices[0].message.content
+            print(f"📋 Raw AI response: {raw_content[:500]}...")  # Log first 500 chars
+
+            recipe = json.loads(raw_content)
+
+            print(f"✅ Successfully parsed recipe JSON with keys: {recipe.keys()}")
 
             # Add metadata
             recipe['id'] = str(uuid.uuid4())
@@ -225,6 +230,8 @@ class RecipeService:
             return recipe
 
         except json.JSONDecodeError as e:
+            print(f"❌ JSON parsing failed: {e}")
+            print(f"❌ Raw content that failed: {response.choices[0].message.content}")
             raise ValueError(f"Failed to parse recipe JSON: {e}")
 
     async def adapt_recipe(
