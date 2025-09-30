@@ -9,7 +9,7 @@ import uuid
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 RECIPE_DEVELOPMENT_PROMPT = """
-You are a professional recipe developer and culinary expert. Your task is to find, adapt, or create a recipe based on the specific requirements provided.
+You are a professional recipe developer and culinary expert. Create REAL, from-scratch recipes that home cooks actually want to make.
 
 Requirements:
 {requirements}
@@ -17,18 +17,36 @@ Requirements:
 Household Context:
 {household_context}
 
-Tasks:
-1. If this is a common dish, find inspiration from trusted culinary sources
-2. Adapt the recipe to fit the household's dietary restrictions, skill level, and available equipment
-3. Scale the recipe for the specified number of servings
-4. Ensure ingredients are commonly available and reasonably priced
-5. Write instructions appropriate for the specified cooking skill level
-6. Include helpful tips and substitution suggestions
+CRITICAL RECIPE QUALITY STANDARDS:
+1. NO jarred sauces, pre-made mixes, or processed shortcuts (e.g., "jar of marinara", "packet of seasoning")
+2. Cook from REAL ingredients - make sauces, seasonings, and components from scratch
+3. Use specific measurements (1 tbsp, 2 cups, 3 cloves) - NEVER vague amounts
+4. Include preparation details (minced, diced, sliced thin, etc.)
+5. Write detailed, technique-focused instructions with timing and visual cues
+6. Provide practical tips for flavor enhancement, substitutions, and storage
+
+Example of GOOD ingredient list:
+- "2 tbsp olive oil"
+- "3 cloves garlic, minced"
+- "1 can (28 oz) crushed tomatoes"
+- "1 tsp dried oregano"
+- "8 oz dried spaghetti pasta"
+
+Example of BAD ingredient list (DO NOT DO THIS):
+- "1 jar marinara sauce"
+- "Pasta"
+- "Grated Parmesan cheese"
+
+Instructions should include:
+- Specific cooking times and temperatures
+- Visual/textural cues (golden brown, softened, bubbling)
+- Technique explanations (sauté, simmer, al dente)
+- Why certain steps matter
 
 Respond with a JSON object in this exact format:
 {
-  "name": "Recipe name",
-  "description": "Brief description of the dish",
+  "name": "Recipe name (descriptive but concise)",
+  "description": "One sentence describing what makes this dish appealing",
   "prep_time": 15,
   "cook_time": 30,
   "total_time": 45,
@@ -36,28 +54,39 @@ Respond with a JSON object in this exact format:
   "difficulty": "beginner|intermediate|advanced",
   "cuisine": "Type of cuisine",
   "ingredients": [
-    "1 lb chicken breast, boneless and skinless",
-    "2 cups basmati rice",
-    "1 medium onion, diced"
+    "8 oz dried spaghetti pasta",
+    "2 tbsp olive oil",
+    "3 cloves garlic, minced",
+    "1 small onion, finely chopped",
+    "1 can (28 oz) crushed tomatoes",
+    "1 tsp dried oregano",
+    "¼ tsp red pepper flakes (optional)",
+    "Kosher salt and black pepper, to taste",
+    "¼ cup grated Parmesan cheese",
+    "Fresh basil for garnish"
   ],
   "instructions": [
-    "Detailed step 1 with timing and technique",
-    "Detailed step 2 with visual cues",
-    "Detailed step 3 with temperature if needed"
+    "Bring a large pot of salted water to a boil. Add spaghetti and cook until al dente, about 9-11 minutes. Reserve ½ cup pasta water before draining.",
+    "Heat olive oil in a large skillet over medium heat. Add onion and sauté 4-5 minutes until softened and translucent.",
+    "Stir in garlic and red pepper flakes; cook 30 seconds until fragrant but not browned.",
+    "Add crushed tomatoes, oregano, ½ tsp salt, and black pepper. Simmer uncovered 12-15 minutes, stirring occasionally, until sauce thickens slightly. Taste and adjust seasoning.",
+    "Toss drained pasta with sauce in the skillet. Add reserved pasta water if needed for consistency.",
+    "Serve immediately, topped with Parmesan and fresh basil."
   ],
-  "equipment_needed": ["Large skillet", "Medium saucepan", "Chef's knife"],
-  "dietary_tags": ["gluten-free", "dairy-free", "high-protein"],
+  "equipment_needed": ["Large pot", "Large skillet", "Colander", "Wooden spoon"],
+  "dietary_tags": ["vegetarian"],
   "tips": [
-    "Helpful cooking tip or substitution",
-    "Storage or reheating advice"
+    "For smoother sauce, use an immersion blender before tossing with pasta",
+    "Add 1 tbsp tomato paste with the onions for deeper flavor",
+    "Sauce keeps 3-4 days refrigerated or freeze up to 2 months"
   ],
   "nutrition_per_serving": {
-    "calories": 350,
-    "protein": "25g",
-    "carbs": "40g",
-    "fat": "10g"
+    "calories": 380,
+    "protein": "12g",
+    "carbs": "58g",
+    "fat": "11g"
   },
-  "source_inspiration": "Inspired by traditional [cuisine] cooking techniques"
+  "source_inspiration": "Classic Italian home cooking"
 }
 """
 
@@ -84,7 +113,7 @@ Respond with the adapted recipe in the same JSON format as the original, plus an
 """
 
 RECIPE_SOURCING_PROMPT = """
-You are a recipe research specialist. Based on the meal requirements, suggest and develop a recipe that would be perfect for this household.
+You are a recipe research specialist. Create a high-quality, from-scratch recipe that fits this household's needs.
 
 Meal Requirements:
 - Meal Type: {meal_type}
@@ -98,15 +127,25 @@ Meal Requirements:
 Household Profile:
 {household_profile}
 
+CRITICAL QUALITY STANDARDS:
+1. NO jarred sauces, soup mixes, or processed shortcuts - cook from REAL ingredients
+2. Use specific measurements (2 tbsp, 1 cup, 3 cloves) with prep details (minced, diced, sliced)
+3. Write detailed instructions with timing, temperatures, and visual cues
+4. Include practical tips for flavor, substitutions, and storage
+5. Make it something a home cook would be proud to serve
+
 Consider:
-1. What would work well for this family's schedule and preferences?
-2. What ingredients do they likely have access to?
-3. What cooking methods match their equipment and skill level?
-4. How can we make this nutritious and satisfying?
+- What would work well for this family's schedule and preferences?
+- What ingredients do they likely have access to?
+- What cooking methods match their equipment and skill level?
+- How can we make this nutritious, flavorful, and satisfying?
 
-Create an original recipe that perfectly fits these requirements. Focus on practical, delicious meals that real families will actually cook and enjoy.
+Example of what to create:
+Instead of "1 jar Alfredo sauce", create a real Alfredo with "2 tbsp butter, 1 cup heavy cream, 1 cup Parmesan, 2 cloves garlic"
 
-Use the same JSON format as specified in the recipe development prompt.
+Instead of "Cook pasta and add sauce", write "Bring salted water to boil. Cook fettuccine 9-11 minutes until al dente. Meanwhile, melt butter over medium heat, add garlic and cook 30 seconds, then add cream and simmer 5 minutes until slightly thickened."
+
+Use the same JSON format with name, description, prep_time, cook_time, servings, difficulty, cuisine, ingredients (detailed list), instructions (step-by-step with timing), equipment_needed, dietary_tags, tips, and nutrition_per_serving.
 """
 
 class RecipeService:
