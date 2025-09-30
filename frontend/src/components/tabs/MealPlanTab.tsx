@@ -123,9 +123,12 @@ function DayCard({ day, recipe, onEditRecipe, onRemoveRecipe }: DayCardProps) {
             onRemove={onRemoveRecipe}
           />
         ) : (
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div
+            onClick={onEditRecipe}
+            className="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-all"
+          >
             <h4 className="font-semibold text-gray-900 text-sm">{mealData.name || 'Meal planned'}</h4>
-            <p className="text-xs text-gray-500 mt-1">Recipe details coming soon</p>
+            <p className="text-xs text-gray-500 mt-1">Click to view recipe</p>
           </div>
         )
       ) : (
@@ -241,10 +244,11 @@ export default function MealPlanTab() {
             onEditRecipe={() => {
               const mealData = workingMealPlan.meals[day.key] as any
               if (mealData?.recipe) {
+                // New format: nested recipe object
                 setEditingRecipe({ day: day.key, recipe: mealData.recipe })
-              } else if (mealData) {
-                // Fallback for simple meal without detailed recipe
-                console.log('No detailed recipe available for', day.key)
+              } else if (mealData?.name) {
+                // Old format: meal data is the recipe itself
+                setEditingRecipe({ day: day.key, recipe: mealData as Recipe })
               }
             }}
           />
@@ -311,32 +315,36 @@ export default function MealPlanTab() {
 
               <div className="space-y-6">
                 {/* Ingredients */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Ingredients</h3>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-gray-700">
-                    {editingRecipe.recipe.ingredients.map((ingredient, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                        <span>{ingredient}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {editingRecipe.recipe.ingredients && editingRecipe.recipe.ingredients.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Ingredients</h3>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-gray-700">
+                      {editingRecipe.recipe.ingredients.map((ingredient, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                          <span>{ingredient}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Instructions */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Instructions</h3>
-                  <ol className="space-y-3">
-                    {editingRecipe.recipe.instructions.map((instruction, index) => (
-                      <li key={index} className="flex items-start text-gray-700">
-                        <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mr-3 flex-shrink-0 mt-0.5">
-                          {index + 1}
-                        </span>
-                        <span className="flex-1">{instruction}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
+                {editingRecipe.recipe.instructions && editingRecipe.recipe.instructions.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Instructions</h3>
+                    <ol className="space-y-3">
+                      {editingRecipe.recipe.instructions.map((instruction, index) => (
+                        <li key={index} className="flex items-start text-gray-700">
+                          <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mr-3 flex-shrink-0 mt-0.5">
+                            {index + 1}
+                          </span>
+                          <span className="flex-1">{instruction}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
 
                 {/* Equipment Needed */}
                 {editingRecipe.recipe.equipment_needed && editingRecipe.recipe.equipment_needed.length > 0 && (
