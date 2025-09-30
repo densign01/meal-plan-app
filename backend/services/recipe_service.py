@@ -44,7 +44,7 @@ Instructions should include:
 - Why certain steps matter
 
 Respond with a JSON object in this exact format:
-{
+{{
   "name": "Recipe name (descriptive but concise)",
   "description": "One sentence describing what makes this dish appealing",
   "prep_time": 15,
@@ -80,14 +80,14 @@ Respond with a JSON object in this exact format:
     "Add 1 tbsp tomato paste with the onions for deeper flavor",
     "Sauce keeps 3-4 days refrigerated or freeze up to 2 months"
   ],
-  "nutrition_per_serving": {
+  "nutrition_per_serving": {{
     "calories": 380,
     "protein": "12g",
     "carbs": "58g",
     "fat": "11g"
-  },
+  }},
   "source_inspiration": "Classic Italian home cooking"
-}
+}}
 """
 
 RECIPE_ADAPTATION_PROMPT = """
