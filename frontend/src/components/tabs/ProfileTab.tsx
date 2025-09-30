@@ -290,46 +290,6 @@ export default function ProfileTab() {
           </div>
         </div>
 
-        {/* Cooking Preferences */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Cooking Preferences</h3>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Cooking Skill</label>
-              {isEditing ? (
-                <select
-                  value={profile.cooking_skill}
-                  onChange={(e) => setEditedProfile({ ...profile, cooking_skill: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-              ) : (
-                <p className="text-gray-900 capitalize">{profile.cooking_skill}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Max Cooking Time (minutes)</label>
-              {isEditing ? (
-                <input
-                  type="number"
-                  value={profile.max_cooking_time}
-                  onChange={(e) => setEditedProfile({ ...profile, max_cooking_time: parseInt(e.target.value) || 30 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  min="10"
-                  max="180"
-                />
-              ) : (
-                <p className="text-gray-900">{profile.max_cooking_time} min</p>
-              )}
-            </div>
-          </div>
-        </div>
-
         {/* Food Preferences */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
@@ -405,27 +365,6 @@ export default function ProfileTab() {
               )}
             </div>
           </div>
-        </div>
-
-        {/* Kitchen Equipment */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Kitchen Equipment</h3>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {profile.kitchen_equipment && profile.kitchen_equipment.length > 0 ? (
-              profile.kitchen_equipment.map((equipment: string, index: number) => (
-                <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                  {equipment}
-                </span>
-              ))
-            ) : (
-              <span className="text-gray-500 text-sm">None specified</span>
-            )}
-          </div>
-          {isEditing && (
-            <p className="text-xs text-gray-500 mt-2">Kitchen equipment editing coming soon!</p>
-          )}
         </div>
       </div>
     </div>
