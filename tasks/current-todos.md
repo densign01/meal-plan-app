@@ -27,6 +27,8 @@
 13. **Implement full MealPlanTab with drag/drop calendar** - Build interactive weekly meal calendar with drag-and-drop functionality
 14. **Implement full GroceryTab with enhanced list management** - Create comprehensive grocery list management with categories and checking
 15. **Implement AI SDK message persistence** - Add proper chat message persistence following `tasks/ai-sdk-message-persistance.md` patterns for conversation continuity across sessions
+16. **Optimize meal plans for common ingredients** - Enhance Menu Generation Agent to strategically reuse ingredients across meals (e.g., roast chicken leftovers → chicken soup, shared herbs across recipes) to minimize grocery shopping complexity
+17. **Add pantry input to weekly planning** - Allow users to specify existing pantry items during chat (e.g., "I have 2 lbs ground chicken" or "I have basil, parsley, cilantro") and prioritize those ingredients in meal plan generation
 
 ## Next Steps 🎯
 

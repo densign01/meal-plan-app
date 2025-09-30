@@ -1,14 +1,11 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AppProviders } from './context/AppProviders'
 import { AppContextProvider, useAppContext } from './context/AppContext'
-import { AuthProvider } from './context/AuthContext'
 import TabNavigation from './components/TabNavigation'
 import TabContent from './components/TabContent'
 import { useState } from 'react'
 import { LogIn, LogOut, User } from 'lucide-react'
 import { useAuth } from './context/AuthContext'
 import AuthModal from './components/AuthModal'
-
-const queryClient = new QueryClient()
 
 function HeaderAuth() {
   const { user, signOut, loading } = useAuth()
@@ -70,33 +67,31 @@ function HeaderAuth() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppContextProvider>
-          <div className="min-h-screen bg-gray-50 pb-20">
-          <header className="bg-white shadow-sm border-b">
-            <div className="max-w-6xl mx-auto px-4 py-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Meal Plan Assistant</h1>
-                  <p className="text-gray-600 mt-1">
-                    AI-powered meal planning for busy families
-                  </p>
-                </div>
-                <HeaderAuth />
+    <AppProviders>
+      <AppContextProvider>
+        <div className="min-h-screen bg-gray-50 pb-20">
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Meal Plan Assistant</h1>
+                <p className="text-gray-600 mt-1">
+                  AI-powered meal planning for busy families
+                </p>
               </div>
+              <HeaderAuth />
             </div>
-          </header>
-
-          <TabNavigation />
-
-          <main className="max-w-6xl mx-auto px-4 py-6">
-            <TabContent />
-          </main>
           </div>
-        </AppContextProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+        </header>
+
+        <TabNavigation />
+
+        <main className="max-w-6xl mx-auto px-4 py-6">
+          <TabContent />
+        </main>
+        </div>
+      </AppContextProvider>
+    </AppProviders>
   )
 }
 
