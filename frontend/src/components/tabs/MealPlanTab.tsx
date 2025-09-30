@@ -251,81 +251,153 @@ export default function MealPlanTab() {
         ))}
       </div>
 
-      {/* Recipe Details Modal - Placeholder */}
+      {/* Recipe Details Modal */}
       {editingRecipe && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
+              {/* Header */}
               <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{editingRecipe.recipe.name}</h2>
-                  <p className="text-gray-600">{editingRecipe.day.charAt(0).toUpperCase() + editingRecipe.day.slice(1)}</p>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-1">{editingRecipe.recipe.name}</h2>
+                  <p className="text-gray-600 capitalize">{editingRecipe.day}</p>
+                  {editingRecipe.recipe.description && (
+                    <p className="text-gray-700 mt-2">{editingRecipe.recipe.description}</p>
+                  )}
                 </div>
                 <button
                   onClick={() => setEditingRecipe(null)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <div className="flex items-center space-x-1">
-                    <Clock className="w-4 h-4" />
-                    <span>Prep: {editingRecipe.recipe.prep_time}min</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Clock className="w-4 h-4" />
-                    <span>Cook: {editingRecipe.recipe.cook_time}min</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Users className="w-4 h-4" />
-                    <span>Serves {editingRecipe.recipe.servings}</span>
-                  </div>
+              {/* Meta Information */}
+              <div className="flex flex-wrap items-center gap-3 mb-4 pb-4 border-b border-gray-200">
+                <div className="flex items-center space-x-1 text-sm text-gray-600">
+                  <Clock className="w-4 h-4" />
+                  <span>Prep: {editingRecipe.recipe.prep_time}min</span>
                 </div>
-
-                {editingRecipe.recipe.dietary_tags && editingRecipe.recipe.dietary_tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {editingRecipe.recipe.dietary_tags.map((tag) => (
-                      <span key={tag} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex items-center space-x-1 text-sm text-gray-600">
+                  <Clock className="w-4 h-4" />
+                  <span>Cook: {editingRecipe.recipe.cook_time}min</span>
+                </div>
+                <div className="flex items-center space-x-1 text-sm text-gray-600">
+                  <Users className="w-4 h-4" />
+                  <span>Serves {editingRecipe.recipe.servings}</span>
+                </div>
+                {editingRecipe.recipe.difficulty && (
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    editingRecipe.recipe.difficulty === 'beginner' ? 'bg-green-100 text-green-700' :
+                    editingRecipe.recipe.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>
+                    {editingRecipe.recipe.difficulty.charAt(0).toUpperCase() + editingRecipe.recipe.difficulty.slice(1)}
+                  </span>
                 )}
+              </div>
 
+              {/* Dietary Tags */}
+              {editingRecipe.recipe.dietary_tags && editingRecipe.recipe.dietary_tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {editingRecipe.recipe.dietary_tags.map((tag) => (
+                    <span key={tag} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="space-y-6">
+                {/* Ingredients */}
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Ingredients</h3>
-                  <ul className="space-y-1 text-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Ingredients</h3>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-gray-700">
                     {editingRecipe.recipe.ingredients.map((ingredient, index) => (
                       <li key={index} className="flex items-start">
                         <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                        {ingredient}
+                        <span>{ingredient}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
+                {/* Instructions */}
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Instructions</h3>
-                  <ol className="space-y-2">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Instructions</h3>
+                  <ol className="space-y-3">
                     {editingRecipe.recipe.instructions.map((instruction, index) => (
                       <li key={index} className="flex items-start text-gray-700">
-                        <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mr-3 flex-shrink-0 mt-0.5">
+                        <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mr-3 flex-shrink-0 mt-0.5">
                           {index + 1}
                         </span>
-                        {instruction}
+                        <span className="flex-1">{instruction}</span>
                       </li>
                     ))}
                   </ol>
                 </div>
+
+                {/* Equipment Needed */}
+                {editingRecipe.recipe.equipment_needed && editingRecipe.recipe.equipment_needed.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Equipment Needed</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {editingRecipe.recipe.equipment_needed.map((equipment, index) => (
+                        <span key={index} className="px-3 py-1 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm">
+                          {equipment}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tips */}
+                {editingRecipe.recipe.tips && editingRecipe.recipe.tips.length > 0 && (
+                  <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Tips & Notes</h3>
+                    <ul className="space-y-2">
+                      {editingRecipe.recipe.tips.map((tip, index) => (
+                        <li key={index} className="flex items-start text-gray-700">
+                          <span className="text-amber-600 mr-2">💡</span>
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Nutrition Information */}
+                {editingRecipe.recipe.nutrition_per_serving && (
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Nutrition Per Serving</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-blue-600">{editingRecipe.recipe.nutrition_per_serving.calories}</p>
+                        <p className="text-sm text-gray-600">Calories</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-blue-600">{editingRecipe.recipe.nutrition_per_serving.protein}</p>
+                        <p className="text-sm text-gray-600">Protein</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-blue-600">{editingRecipe.recipe.nutrition_per_serving.carbs}</p>
+                        <p className="text-sm text-gray-600">Carbs</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-blue-600">{editingRecipe.recipe.nutrition_per_serving.fat}</p>
+                        <p className="text-sm text-gray-600">Fat</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="mt-6 flex justify-end">
+              {/* Footer */}
+              <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
                 <button
                   onClick={() => setEditingRecipe(null)}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
                   Close
                 </button>

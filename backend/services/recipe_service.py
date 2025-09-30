@@ -1,6 +1,7 @@
 from openai import OpenAI
 import json
 import os
+import math
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 import uuid
@@ -131,6 +132,10 @@ class RecipeService:
         This is called by the MealPlanningService
         """
 
+        # Calculate servings: 1.5x household size, rounded up
+        household_size = len(household_profile.get('members', [])) or 4
+        servings = math.ceil(household_size * 1.5)
+
         requirements = {
             "meal_type": meal_type,
             "cuisine": cuisine,
@@ -138,7 +143,7 @@ class RecipeService:
                                    self._extract_dietary_restrictions(household_profile),
             "max_cooking_time": household_profile.get('max_cooking_time', 30),
             "skill_level": household_profile.get('cooking_skill', 'intermediate'),
-            "servings": len(household_profile.get('members', [])) or 4,
+            "servings": servings,
             "available_equipment": household_profile.get('kitchen_equipment', []),
             "favorite_cuisines": household_profile.get('favorite_cuisines', []),
             "special_requests": special_requirements or {}

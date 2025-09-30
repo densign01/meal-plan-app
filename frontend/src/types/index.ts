@@ -33,6 +33,20 @@ export interface Recipe {
   ingredients: string[]
   instructions: string[]
   dietary_tags: string[]
+  // Optional fields from backend
+  description?: string
+  difficulty?: 'beginner' | 'intermediate' | 'advanced'
+  cuisine?: string
+  equipment_needed?: string[]
+  tips?: string[]
+  nutrition_per_serving?: {
+    calories: number
+    protein: string
+    carbs: string
+    fat: string
+  }
+  total_time?: number
+  source_inspiration?: string
 }
 
 export interface MealPlan {
