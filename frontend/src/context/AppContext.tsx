@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import type { MealPlan, GroceryList, HouseholdProfile } from '../types'
 import { MealPlanAPI } from '../services/api'
 import { useAuth } from './AuthContext'
+import { useLocalStorage, useLocalStorageString } from '../hooks/useLocalStorage'
 
 export type TabType = 'home' | 'meal-plan' | 'grocery' | 'profile'
 
@@ -36,59 +37,14 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export function AppContextProvider({ children }: { children: ReactNode }) {
   const [activeTab, setActiveTab] = useState<TabType>('home')
-  const [householdId, setHouseholdId] = useState<string | null>(() => {
-    // Try to restore from localStorage on initial load
-    try {
-      return localStorage.getItem('householdId')
-    } catch {
-      return null
-    }
-  })
+  const [householdId, setHouseholdId] = useLocalStorageString('householdId', null)
   const [currentMealPlan, setCurrentMealPlan] = useState<MealPlan | null>(null)
   const [currentGroceryList, setCurrentGroceryList] = useState<GroceryList | null>(null)
-  const [householdProfile, setHouseholdProfile] = useState<HouseholdProfile | null>(() => {
-    // Try to restore from localStorage on initial load
-    try {
-      const stored = localStorage.getItem('householdProfile')
-      return stored ? JSON.parse(stored) : null
-    } catch {
-      return null
-    }
-  })
+  const [householdProfile, setHouseholdProfile] = useLocalStorage<HouseholdProfile | null>('householdProfile', null)
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false)
   const [selectedMealDay, setSelectedMealDay] = useState('monday')
 
   const { user } = useAuth()
-
-  // Persist householdId to localStorage when it changes
-  useEffect(() => {
-    try {
-      if (householdId) {
-        localStorage.setItem('householdId', householdId)
-        console.log('AppContext: Saved householdId to localStorage:', householdId)
-      } else {
-        localStorage.removeItem('householdId')
-        console.log('AppContext: Removed householdId from localStorage')
-      }
-    } catch (error) {
-      console.warn('AppContext: Failed to persist householdId:', error)
-    }
-  }, [householdId])
-
-  // Persist householdProfile to localStorage when it changes
-  useEffect(() => {
-    try {
-      if (householdProfile) {
-        localStorage.setItem('householdProfile', JSON.stringify(householdProfile))
-        console.log('AppContext: Saved householdProfile to localStorage')
-      } else {
-        localStorage.removeItem('householdProfile')
-        console.log('AppContext: Removed householdProfile from localStorage')
-      }
-    } catch (error) {
-      console.warn('AppContext: Failed to persist householdProfile:', error)
-    }
-  }, [householdProfile])
 
   // Load existing household data when user authenticates
   useEffect(() => {
@@ -158,22 +114,13 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 
   const resetAppState = () => {
     console.log('AppContext: Resetting app state')
-    setHouseholdId(null)
+    setHouseholdId(null) // Automatically clears localStorage via useLocalStorage hook
     setCurrentMealPlan(null)
     setCurrentGroceryList(null)
-    setHouseholdProfile(null)
+    setHouseholdProfile(null) // Automatically clears localStorage via useLocalStorage hook
     setIsOnboardingComplete(false)
     setActiveTab('home')
     setSelectedMealDay('monday')
-
-    // Clear localStorage
-    try {
-      localStorage.removeItem('householdId')
-      localStorage.removeItem('householdProfile')
-      console.log('AppContext: Cleared localStorage')
-    } catch (error) {
-      console.warn('AppContext: Failed to clear localStorage:', error)
-    }
   }
 
   const value: AppContextType = {
