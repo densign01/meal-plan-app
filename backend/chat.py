@@ -376,19 +376,17 @@ async def create_comprehensive_meal_plan(
         weekly_menu = await generate_weekly_menu(household_profile, weekly_constraints)
         print(f"✅ Menu generated: {weekly_menu}")
 
-        # Step 3: Calculate week start date (upcoming Sunday)
+        # Step 3: Calculate week start date (most recent Sunday, or today if today is Sunday)
         today = datetime.now()
-        # Calculate days until next Sunday (0 = Monday, 6 = Sunday)
+        # Calculate days since last Sunday (0 = Monday, 6 = Sunday)
         current_weekday = today.weekday()
 
         if current_weekday == 6:  # Today is Sunday
             week_start = today
         else:
-            # Days until next Sunday
-            days_until_sunday = (6 - current_weekday) % 7
-            if days_until_sunday == 0:  # This shouldn't happen but just in case
-                days_until_sunday = 7
-            week_start = today + timedelta(days=days_until_sunday)
+            # Days since last Sunday (Monday=1 day ago, Tuesday=2 days ago, etc.)
+            days_since_sunday = (current_weekday + 1) % 7
+            week_start = today - timedelta(days=days_since_sunday)
 
         week_start_date = week_start.strftime("%Y-%m-%d")
         print(f"📅 Calculated week start (Sunday): {week_start_date} (today is {today.strftime('%Y-%m-%d')}, weekday={current_weekday})")
