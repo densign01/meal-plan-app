@@ -17,31 +17,42 @@ Requirements:
 Household Context:
 {household_context}
 
-CRITICAL RECIPE QUALITY STANDARDS:
-1. NO jarred sauces, pre-made mixes, or processed shortcuts (e.g., "jar of marinara", "packet of seasoning")
-2. Cook from REAL ingredients - make sauces, seasonings, and components from scratch
-3. Use specific measurements (1 tbsp, 2 cups, 3 cloves) - NEVER vague amounts
-4. Include preparation details (minced, diced, sliced thin, etc.)
-5. Write detailed, technique-focused instructions with timing and visual cues
-6. Provide practical tips for flavor enhancement, substitutions, and storage
+CRITICAL RECIPE QUALITY STANDARDS - FOLLOW THESE EXACTLY:
+1. ❌ ABSOLUTELY NO jarred sauces (marinara, Alfredo, pesto), canned soups, pre-made mixes, or processed shortcuts
+2. ✅ Build EVERYTHING from scratch using real ingredients (fresh/canned tomatoes, cream, butter, herbs, spices)
+3. ✅ Use SPECIFIC measurements with prep details: "3 cloves garlic, minced" NOT "garlic"
+4. ✅ Include 8-12 ingredients minimum (except for very simple dishes)
+5. ✅ Write detailed instructions with timing, temperatures, and technique explanations
+6. ✅ Make recipes that taste restaurant-quality but are achievable at home
 
-Example of GOOD ingredient list:
-- "2 tbsp olive oil"
-- "3 cloves garlic, minced"
-- "1 can (28 oz) crushed tomatoes"
+Example of EXCELLENT Spaghetti Marinara (from scratch):
+GOOD Ingredients:
+- "12 oz dried spaghetti pasta"
+- "3 tbsp extra virgin olive oil"
+- "1 medium yellow onion, finely diced"
+- "4 cloves garlic, minced"
+- "1 can (28 oz) crushed San Marzano tomatoes"
+- "2 tbsp tomato paste"
 - "1 tsp dried oregano"
-- "8 oz dried spaghetti pasta"
+- "½ tsp dried basil"
+- "¼ tsp red pepper flakes"
+- "1 tsp sugar (to balance acidity)"
+- "Kosher salt and freshly ground black pepper"
+- "¼ cup fresh basil leaves, torn"
+- "½ cup freshly grated Parmesan cheese"
 
-Example of BAD ingredient list (DO NOT DO THIS):
-- "1 jar marinara sauce"
-- "Pasta"
-- "Grated Parmesan cheese"
+BAD Ingredients (NEVER DO THIS):
+- ❌ "1 jar marinara sauce"
+- ❌ "Pasta"
+- ❌ "Parmesan cheese"
+- ❌ "Italian seasoning mix"
 
 Instructions should include:
-- Specific cooking times and temperatures
-- Visual/textural cues (golden brown, softened, bubbling)
-- Technique explanations (sauté, simmer, al dente)
-- Why certain steps matter
+- Specific cooking times and temperatures (e.g., "sauté 4-5 minutes over medium heat")
+- Visual/textural cues ("until golden brown", "until sauce has thickened and reduced by half")
+- Technique explanations ("al dente means tender but still firm to the bite")
+- Why certain steps matter ("reserve pasta water for adjusting sauce consistency")
+- Pro tips ("add pasta water gradually; the starch helps sauce cling to pasta")
 
 Respond with a JSON object in this exact format:
 {{
@@ -207,10 +218,10 @@ class RecipeService:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a professional recipe developer. Always respond with valid JSON only. Focus on practical, achievable recipes that real families will cook."},
+                {"role": "system", "content": "You are a professional recipe developer. CRITICAL: Never use jarred sauces or pre-made mixes. Always build recipes from scratch with real ingredients. Respond with valid JSON only."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=1500,
+            max_tokens=2000,
             temperature=0.7
         )
 
@@ -303,10 +314,10 @@ class RecipeService:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a recipe research specialist. Always respond with valid JSON only. Focus on recipes that families actually want to cook."},
+                {"role": "system", "content": "You are a recipe research specialist. CRITICAL: Never use jarred sauces, canned soups, or pre-made mixes. Build everything from scratch with real ingredients. Always respond with valid JSON only."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=1500,
+            max_tokens=2000,
             temperature=0.7
         )
 
