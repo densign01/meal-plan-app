@@ -4,6 +4,7 @@ import { MealPlanAPI } from '../../services/api'
 import type { ChatMessage } from '../../types'
 import ChatInterface from '../shared/ChatInterface'
 import { ArrowLeft } from 'lucide-react'
+import { useLocalStorage, useLocalStorageString } from '../../hooks/useLocalStorage'
 
 interface WeeklyPlanningAgentProps {
   householdId: string
@@ -16,8 +17,8 @@ export default function WeeklyPlanningAgent({
   onComplete,
   onBack
 }: WeeklyPlanningAgentProps) {
-  const [sessionId, setSessionId] = useState<string | null>(null)
-  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [sessionId, setSessionId] = useLocalStorageString('weeklyPlanningSessionId', null)
+  const [messages, setMessages] = useLocalStorage<ChatMessage[]>('weeklyPlanningMessages', [])
   const [isCompleted, setIsCompleted] = useState(false)
   const [isGeneratingMealPlan, setIsGeneratingMealPlan] = useState(false)
   const [mealPlan, setMealPlan] = useState<any>(null)

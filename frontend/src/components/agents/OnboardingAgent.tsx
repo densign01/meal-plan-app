@@ -4,6 +4,7 @@ import { MealPlanAPI } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import type { ChatMessage } from '../../types'
 import ChatInterface from '../shared/ChatInterface'
+import { useLocalStorage, useLocalStorageString } from '../../hooks/useLocalStorage'
 
 interface OnboardingAgentProps {
   onComplete: (householdId: string, profileData?: any) => void
@@ -11,8 +12,8 @@ interface OnboardingAgentProps {
 }
 
 export default function OnboardingAgent({ onComplete, onReset }: OnboardingAgentProps) {
-  const [sessionId, setSessionId] = useState<string | null>(null)
-  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [sessionId, setSessionId] = useLocalStorageString('onboardingSessionId', null)
+  const [messages, setMessages] = useLocalStorage<ChatMessage[]>('onboardingMessages', [])
   const [isCompleted, setIsCompleted] = useState(false)
   const { user } = useAuth()
 

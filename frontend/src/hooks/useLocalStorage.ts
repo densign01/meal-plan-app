@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
  * Custom hook for syncing state with localStorage
  * Automatically persists state changes and restores on mount
  */
-export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((prev: T) => T)) => void] {
   // Initialize state from localStorage or use initial value
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
