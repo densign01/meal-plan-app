@@ -51,10 +51,6 @@ function RecipeCard({ recipe, onEdit, onRemove }: RecipeCardProps) {
           <Clock className="w-3 h-3" />
           <span>{totalTime}min</span>
         </div>
-        <div className="flex items-center space-x-1">
-          <Users className="w-3 h-3" />
-          <span>{recipe.servings}</span>
-        </div>
       </div>
 
       {recipe.dietary_tags && recipe.dietary_tags.length > 0 && (
@@ -215,6 +211,13 @@ export default function MealPlanTab() {
     }
   }
 
+  const handleClearMealPlan = () => {
+    if (confirm('Are you sure you want to clear this meal plan? This cannot be undone.')) {
+      setCurrentMealPlan(null)
+      setActiveTab('home')
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -224,13 +227,21 @@ export default function MealPlanTab() {
           <p className="text-gray-600">Week of {formatDate(currentMealPlan.week_start_date)}</p>
           <p className="text-sm text-gray-500 mt-1">Your personalized meal plan for the week</p>
         </div>
-        <button
-          onClick={() => setActiveTab('home')}
-          className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Home</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleClearMealPlan}
+            className="text-sm text-red-600 hover:text-red-700 underline"
+          >
+            Clear meal plan
+          </button>
+          <button
+            onClick={() => setActiveTab('home')}
+            className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Home</span>
+          </button>
+        </div>
       </div>
 
       {/* Weekly Calendar Grid */}
