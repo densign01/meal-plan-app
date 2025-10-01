@@ -36,7 +36,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export function AppContextProvider({ children }: { children: ReactNode }) {
-  const [activeTab, setActiveTab] = useState<TabType>('home')
+  const [activeTab, setActiveTab] = useLocalStorage<TabType>('activeTab', 'home')
   const [householdId, setHouseholdId] = useLocalStorageString('householdId', null)
   const [currentMealPlan, setCurrentMealPlan] = useState<MealPlan | null>(null)
   const [currentGroceryList, setCurrentGroceryList] = useState<GroceryList | null>(null)
