@@ -46,7 +46,13 @@ function QuickAction({ icon: Icon, title, description, onClick, disabled }: Quic
 }
 
 function WelcomeSection({ onStartMealPlanning }: { onStartMealPlanning: () => void }) {
-  const { isOnboardingComplete, householdProfile, setActiveTab } = useAppContext()
+  const { isOnboardingComplete, householdProfile, setActiveTab, setCurrentMealPlan, currentMealPlan } = useAppContext()
+
+  const handleClearMealPlan = () => {
+    if (confirm('Are you sure you want to clear your current meal plan? This cannot be undone.')) {
+      setCurrentMealPlan(null)
+    }
+  }
 
   const quickActions = [
     {
@@ -61,7 +67,7 @@ function WelcomeSection({ onStartMealPlanning }: { onStartMealPlanning: () => vo
       title: 'View Meal Plan',
       description: 'See your current weekly meal plan',
       onClick: () => setActiveTab('meal-plan'),
-      disabled: !isOnboardingComplete
+      disabled: !isOnboardingComplete || !currentMealPlan
     },
     {
       icon: User,
@@ -92,10 +98,24 @@ function WelcomeSection({ onStartMealPlanning }: { onStartMealPlanning: () => vo
 
       {/* Quick Actions */}
       {isOnboardingComplete && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {quickActions.map((action, index) => (
-            <QuickAction key={index} {...action} />
-          ))}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {quickActions.map((action, index) => (
+              <QuickAction key={index} {...action} />
+            ))}
+          </div>
+
+          {/* Clear Meal Plan Button */}
+          {currentMealPlan && (
+            <div className="text-center">
+              <button
+                onClick={handleClearMealPlan}
+                className="text-sm text-red-600 hover:text-red-700 underline"
+              >
+                Clear current meal plan
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
