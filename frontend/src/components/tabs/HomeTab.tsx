@@ -6,6 +6,7 @@ import OnboardingAgent from '../agents/OnboardingAgent'
 import WeeklyPlanningAgent from '../agents/WeeklyPlanningAgent'
 import AuthModal from '../AuthModal'
 import ErrorBoundary from '../ErrorBoundary'
+import { useLocalStorage, useLocalStorageString } from '../../hooks/useLocalStorage'
 
 type ChatMode = 'onboarding' | 'onboarding-complete' | 'weekly-planning' | 'meal-modification'
 
@@ -128,8 +129,8 @@ export default function HomeTab() {
 
   const { user } = useAuth()
 
-  const [chatMode, setChatMode] = useState<ChatMode>('onboarding')
-  const [showChat, setShowChat] = useState(!isOnboardingComplete)
+  const [chatMode, setChatMode] = useLocalStorageString('homeChatMode', 'onboarding')
+  const [showChat, setShowChat] = useLocalStorage<boolean>('homeShowChat', !isOnboardingComplete)
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   // Handle returning user who logs in - skip onboarding if they already have a profile
