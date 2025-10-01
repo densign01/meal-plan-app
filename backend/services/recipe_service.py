@@ -398,7 +398,7 @@ class RecipeService:
         )
 
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="GPT-5-mini",
             messages=[
                 {"role": "system", "content": "You are a professional recipe developer. CRITICAL: Never use jarred sauces or pre-made mixes. Always build recipes from scratch with real ingredients. Respond with valid JSON only."},
                 {"role": "user", "content": prompt}
@@ -452,7 +452,7 @@ class RecipeService:
         )
 
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="GPT-5-mini",
             messages=[
                 {"role": "system", "content": "You are a culinary expert specializing in recipe adaptation. Always respond with valid JSON only."},
                 {"role": "user", "content": prompt}
@@ -502,7 +502,7 @@ class RecipeService:
         )
 
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="GPT-5-mini",
             messages=[
                 {"role": "system", "content": "You are a recipe research specialist. CRITICAL: Never use jarred sauces, canned soups, or pre-made mixes. Build everything from scratch with real ingredients. Always respond with valid JSON only."},
                 {"role": "user", "content": prompt}
