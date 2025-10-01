@@ -403,8 +403,7 @@ class RecipeService:
                 {"role": "system", "content": "You are a professional recipe developer. CRITICAL: Never use jarred sauces or pre-made mixes. Always build recipes from scratch with real ingredients. Respond with valid JSON only."},
                 {"role": "user", "content": prompt}
             ],
-            max_completion_tokens=2000,
-            temperature=0.7
+            max_completion_tokens=2000
         )
 
         try:
@@ -457,8 +456,7 @@ class RecipeService:
                 {"role": "system", "content": "You are a culinary expert specializing in recipe adaptation. Always respond with valid JSON only."},
                 {"role": "user", "content": prompt}
             ],
-            max_completion_tokens=1500,
-            temperature=0.5  # Lower temperature for adaptations to maintain consistency
+            max_completion_tokens=1500
         )
 
         try:
@@ -507,8 +505,7 @@ class RecipeService:
                 {"role": "system", "content": "You are a recipe research specialist. CRITICAL: Never use jarred sauces, canned soups, or pre-made mixes. Build everything from scratch with real ingredients. Always respond with valid JSON only."},
                 {"role": "user", "content": prompt}
             ],
-            max_completion_tokens=2000,
-            temperature=0.7
+            max_completion_tokens=2000
         )
 
         try:
