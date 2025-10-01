@@ -1,14 +1,10 @@
-from openai import OpenAI
 import json
-import os
 from typing import Dict, List, Any
 from datetime import datetime, timedelta
 from database import get_supabase_client
 from services.recipe_service import RecipeService
 import uuid
 import asyncio
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 MEAL_PLANNING_PROMPT = """
 You are an expert meal planner. Create a 7-day dinner meal plan based on the household profile and weekly context provided.

@@ -1,11 +1,9 @@
-from openai import OpenAI
 import json
-import os
 from typing import List, Dict, Any
 from models import HouseholdProfile, HouseholdMember, CookingSkill, DietaryRestriction
 from services.recipe_service import RecipeService
+from services.llm_gateway import chat_completion
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 recipe_service = RecipeService()
 
 ONBOARDING_SYSTEM_PROMPT = """
@@ -190,19 +188,19 @@ async def extract_onboarding_data(chat_history: List[Dict[str, str]]) -> Dict[st
         {"role": "user", "content": f"Extract data from this conversation:\n\n{conversation_text}"}
     ]
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
+    response = await chat_completion(
         messages=messages,
+        model="gpt-5-mini",
         max_tokens=500,
-        temperature=0.1  # Low temperature for consistent extraction
+        temperature=0.1,
     )
 
     try:
-        extracted_data = json.loads(response.choices[0].message.content.strip())
+        extracted_data = json.loads(response.get("message", {}).get("content", "").strip())
         return extracted_data
     except json.JSONDecodeError as e:
         print(f"Data extraction failed: {e}")
-        print(f"Raw response: {response.choices[0].message.content}")
+        print(f"Raw response: {response.get('message', {}).get('content')}")
         raise ValueError("Failed to extract valid JSON from conversation")
 
 async def parse_weekly_constraints(chat_history: List[Dict[str, str]]) -> Dict[str, Any]:
@@ -218,19 +216,19 @@ async def parse_weekly_constraints(chat_history: List[Dict[str, str]]) -> Dict[s
         {"role": "user", "content": f"Parse this weekly planning conversation:\n\n{conversation_text}"}
     ]
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
+    response = await chat_completion(
         messages=messages,
+        model="gpt-5-mini",
         max_tokens=800,
-        temperature=0.1
+        temperature=0.1,
     )
 
     try:
-        constraints = json.loads(response.choices[0].message.content.strip())
+        constraints = json.loads(response.get("message", {}).get("content", "").strip())
         return constraints
     except json.JSONDecodeError as e:
         print(f"Constraint parsing failed: {e}")
-        print(f"Raw response: {response.choices[0].message.content}")
+        print(f"Raw response: {response.get('message', {}).get('content')}")
         raise ValueError("Failed to extract valid JSON from weekly conversation")
 
 async def generate_weekly_menu(household_profile: Dict[str, Any], weekly_constraints: Dict[str, Any]) -> Dict[str, Any]:
@@ -252,15 +250,15 @@ Generate a balanced, varied weekly menu following the guidelines in your system 
         {"role": "user", "content": prompt}
     ]
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
+    response = await chat_completion(
         messages=messages,
+        model="gpt-5-mini",
         max_tokens=1000,
-        temperature=0.3
+        temperature=0.3,
     )
 
     try:
-        menu_titles = json.loads(response.choices[0].message.content.strip())
+        menu_titles = json.loads(response.get("message", {}).get("content", "").strip())
 
         # Step 2: Use RecipeAgent to generate detailed recipes for each meal
         detailed_menu = {}
@@ -308,7 +306,7 @@ Generate a balanced, varied weekly menu following the guidelines in your system 
 
     except json.JSONDecodeError as e:
         print(f"Menu generation failed: {e}")
-        print(f"Raw response: {response.choices[0].message.content}")
+        print(f"Raw response: {response.get('message', {}).get('content')}")
         raise ValueError("Failed to generate valid menu JSON")
 
 async def process_chat_message(
@@ -324,14 +322,14 @@ async def process_chat_message(
     messages.extend(chat_history)
     messages.append({"role": "user", "content": message})
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
+    response = await chat_completion(
         messages=messages,
+        model="gpt-5-mini",
         max_tokens=500,
-        temperature=0.7
+        temperature=0.7,
     )
 
-    assistant_message = response.choices[0].message.content
+    assistant_message = response.get("message", {}).get("content", "")
 
     result = {
         "message": assistant_message,

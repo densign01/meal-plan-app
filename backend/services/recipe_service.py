@@ -1,4 +1,3 @@
-from openai import OpenAI
 import json
 import os
 import math
@@ -6,8 +5,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 import uuid
 from database import supabase
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+from services.llm_gateway import chat_completion
 
 RECIPE_DEVELOPMENT_PROMPT = """
 You are a professional recipe developer and culinary expert. Create REAL, from-scratch recipes that home cooks actually want to make.
@@ -398,17 +396,21 @@ class RecipeService:
             household_context=json.dumps(household_context, indent=2)
         )
 
-        response = client.chat.completions.create(
-            model="gpt-5",
+        response = await chat_completion(
             messages=[
-                {"role": "system", "content": "You are a professional recipe developer. CRITICAL: Never use jarred sauces or pre-made mixes. Always build recipes from scratch with real ingredients. Be creative and avoid repetitive recipes. Respond with valid JSON only."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a professional recipe developer. CRITICAL: Never use jarred sauces or pre-made mixes. Always build recipes from scratch with real ingredients. Be creative and avoid repetitive recipes. Respond with valid JSON only.",
+                },
+                {"role": "user", "content": prompt},
             ],
-            max_completion_tokens=2000
+            model="gpt-5-mini",
+            max_tokens=2000,
+            temperature=0.7,
         )
 
         try:
-            raw_content = response.choices[0].message.content
+            raw_content = response.get("message", {}).get("content", "")
             print(f"📋 Raw AI response: {raw_content[:500]}...")  # Log first 500 chars
 
             # Strip markdown code blocks if present
@@ -432,7 +434,7 @@ class RecipeService:
 
         except json.JSONDecodeError as e:
             print(f"❌ JSON parsing failed: {e}")
-            print(f"❌ Raw content that failed: {response.choices[0].message.content}")
+            print(f"❌ Raw content that failed: {raw_content}")
             raise ValueError(f"Failed to parse recipe JSON: {e}")
 
     async def adapt_recipe(
@@ -451,17 +453,22 @@ class RecipeService:
             household_context=json.dumps(household_context, indent=2)
         )
 
-        response = client.chat.completions.create(
-            model="gpt-5",
+        response = await chat_completion(
             messages=[
-                {"role": "system", "content": "You are a culinary expert specializing in recipe adaptation. Always respond with valid JSON only."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a culinary expert specializing in recipe adaptation. Always respond with valid JSON only.",
+                },
+                {"role": "user", "content": prompt},
             ],
-            max_completion_tokens=1500
+            model="gpt-5-mini",
+            max_tokens=1500,
+            temperature=0.6,
         )
 
         try:
-            adapted_recipe = json.loads(response.choices[0].message.content)
+            raw_content = response.get("message", {}).get("content", "")
+            adapted_recipe = json.loads(raw_content)
 
             # Add metadata
             adapted_recipe['id'] = str(uuid.uuid4())
@@ -472,7 +479,7 @@ class RecipeService:
             return adapted_recipe
 
         except json.JSONDecodeError as e:
-            raise ValueError(f"Failed to parse adapted recipe JSON: {e}")
+            raise ValueError(f"Failed to parse adapted recipe JSON: {e}. Raw content: {raw_content}")
 
     async def find_recipe_by_criteria(
         self,
@@ -500,17 +507,21 @@ class RecipeService:
             household_profile=json.dumps(household_profile, indent=2)
         )
 
-        response = client.chat.completions.create(
-            model="gpt-5",
+        response = await chat_completion(
             messages=[
-                {"role": "system", "content": "You are a recipe research specialist. CRITICAL: Never use jarred sauces, canned soups, or pre-made mixes. Build everything from scratch with real ingredients. Be creative and avoid repetitive recipes. Always respond with valid JSON only."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a recipe research specialist. CRITICAL: Never use jarred sauces, canned soups, or pre-made mixes. Build everything from scratch with real ingredients. Be creative and avoid repetitive recipes. Always respond with valid JSON only.",
+                },
+                {"role": "user", "content": prompt},
             ],
-            max_completion_tokens=2000
+            model="gpt-5-mini",
+            max_tokens=2000,
+            temperature=0.7,
         )
 
         try:
-            raw_content = response.choices[0].message.content
+            raw_content = response.get("message", {}).get("content", "")
 
             # Strip markdown code blocks if present
             if raw_content.startswith('```'):
@@ -529,7 +540,7 @@ class RecipeService:
             return recipe
 
         except json.JSONDecodeError as e:
-            raise ValueError(f"Failed to parse sourced recipe JSON: {e}")
+            raise ValueError(f"Failed to parse sourced recipe JSON: {e}. Raw content: {raw_content}")
 
     async def search_external_recipes(self, query: str, dietary_filters: List[str] = None) -> List[Dict[str, Any]]:
         """
