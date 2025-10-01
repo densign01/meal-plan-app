@@ -5,6 +5,7 @@ import math
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 import uuid
+from database import supabase
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -169,6 +170,151 @@ class RecipeService:
             'spoonacular': os.getenv('SPOONACULAR_API_KEY'),
             'edamam': os.getenv('EDAMAM_API_KEY')
         }
+        self.use_cache = True  # Enable recipe caching
+
+    async def save_recipe_to_database(self, recipe: Dict[str, Any]) -> str:
+        """
+        Save a generated recipe to the database for future reuse
+        Returns the recipe ID
+        """
+        try:
+            # Extract key information for indexing
+            recipe_data = {
+                "name": recipe.get("name"),
+                "description": recipe.get("description"),
+                "cuisine": recipe.get("cuisine"),
+                "meal_type": recipe.get("meal_type", "dinner"),
+                "prep_time": recipe.get("prep_time"),
+                "cook_time": recipe.get("cook_time"),
+                "total_time": recipe.get("prep_time", 0) + recipe.get("cook_time", 0),
+                "servings": recipe.get("servings", 4),
+                "difficulty": recipe.get("difficulty", "intermediate"),
+                "ingredients": recipe.get("ingredients", []),
+                "instructions": recipe.get("instructions", []),
+                "equipment_needed": recipe.get("equipment_needed", []),
+                "tips": recipe.get("tips", []),
+                "dietary_tags": recipe.get("dietary_tags", []),
+                "nutrition_per_serving": recipe.get("nutrition_per_serving"),
+                "full_recipe_json": recipe,
+
+                # Extract searchable fields
+                "keywords": self._extract_keywords(recipe),
+                "primary_protein": self._extract_primary_protein(recipe),
+                "main_ingredients": self._extract_main_ingredients(recipe),
+            }
+
+            result = supabase.table("recipes").insert(recipe_data).execute()
+
+            if result.data and len(result.data) > 0:
+                recipe_id = result.data[0]['id']
+                print(f"✅ Saved recipe '{recipe['name']}' to database with ID: {recipe_id}")
+                return recipe_id
+            else:
+                print(f"⚠️ Failed to save recipe to database")
+                return None
+
+        except Exception as e:
+            print(f"❌ Error saving recipe to database: {e}")
+            return None
+
+    async def search_cached_recipes(
+        self,
+        cuisine: Optional[str] = None,
+        meal_type: Optional[str] = None,
+        max_time: Optional[int] = None,
+        dietary_restrictions: Optional[List[str]] = None,
+        limit: int = 10
+    ) -> List[Dict[str, Any]]:
+        """
+        Search for existing recipes in the database that match criteria
+        """
+        try:
+            query = supabase.table("recipes").select("*")
+
+            # Apply filters
+            if cuisine:
+                query = query.ilike("cuisine", f"%{cuisine}%")
+            if meal_type:
+                query = query.eq("meal_type", meal_type)
+            if max_time:
+                query = query.lte("total_time", max_time)
+            if dietary_restrictions:
+                # Check if all dietary restrictions are in dietary_tags
+                query = query.contains("dietary_tags", dietary_restrictions)
+
+            # Order by popularity (times_used) and limit results
+            query = query.order("times_used", desc=True).limit(limit)
+
+            result = query.execute()
+
+            if result.data:
+                print(f"🔍 Found {len(result.data)} cached recipes matching criteria")
+                return [r["full_recipe_json"] for r in result.data]
+            else:
+                print(f"🔍 No cached recipes found matching criteria")
+                return []
+
+        except Exception as e:
+            print(f"❌ Error searching cached recipes: {e}")
+            return []
+
+    async def increment_recipe_usage(self, recipe_id: str):
+        """
+        Increment the times_used counter for a recipe
+        """
+        try:
+            supabase.table("recipes").update({"times_used": supabase.rpc("increment", {"row_id": recipe_id})}).eq("id", recipe_id).execute()
+            print(f"📊 Incremented usage count for recipe {recipe_id}")
+        except Exception as e:
+            print(f"⚠️ Failed to increment recipe usage: {e}")
+
+    def _extract_keywords(self, recipe: Dict[str, Any]) -> List[str]:
+        """Extract searchable keywords from recipe"""
+        keywords = []
+        name_words = recipe.get("name", "").lower().split()
+        desc_words = recipe.get("description", "").lower().split()
+        keywords.extend(name_words + desc_words)
+
+        # Add dietary tags as keywords
+        keywords.extend([tag.lower() for tag in recipe.get("dietary_tags", [])])
+
+        # Remove common words and duplicates
+        stop_words = {"a", "an", "the", "with", "and", "or", "for", "to", "in"}
+        keywords = list(set([w for w in keywords if w not in stop_words and len(w) > 2]))
+
+        return keywords[:20]  # Limit to 20 keywords
+
+    def _extract_primary_protein(self, recipe: Dict[str, Any]) -> Optional[str]:
+        """Extract the primary protein from ingredients"""
+        proteins = ["chicken", "beef", "pork", "fish", "salmon", "shrimp", "turkey", "lamb", "tofu", "tempeh"]
+        ingredients_text = " ".join(recipe.get("ingredients", [])).lower()
+
+        for protein in proteins:
+            if protein in ingredients_text:
+                return protein
+
+        # Check if vegetarian/vegan
+        dietary_tags = [tag.lower() for tag in recipe.get("dietary_tags", [])]
+        if "vegetarian" in dietary_tags or "vegan" in dietary_tags:
+            return "vegetarian"
+
+        return None
+
+    def _extract_main_ingredients(self, recipe: Dict[str, Any]) -> List[str]:
+        """Extract main ingredients (first 5-6 ingredients usually)"""
+        ingredients = recipe.get("ingredients", [])
+        main_ingredients = []
+
+        # Extract ingredient names (before measurements/prep instructions)
+        for ing in ingredients[:6]:
+            # Simple extraction: look for common ingredient words
+            words = ing.lower().split()
+            # Filter out measurements and common words
+            ingredient_words = [w for w in words if len(w) > 3 and not any(char.isdigit() for char in w)]
+            if ingredient_words:
+                main_ingredients.append(ingredient_words[0])
+
+        return main_ingredients[:5]
 
     async def get_recipe_for_meal_slot(
         self,
@@ -180,18 +326,48 @@ class RecipeService:
         """
         Get a recipe for a specific meal slot in a meal plan
         This is called by the MealPlanningService
+
+        Strategy:
+        1. First, try to find a cached recipe that matches criteria
+        2. If found, return it (much faster!)
+        3. If not found, generate a new recipe and save it for future use
         """
 
         # Calculate servings: 1.5x household size, rounded up
         household_size = len(household_profile.get('members', [])) or 4
         servings = math.ceil(household_size * 1.5)
 
+        dietary_restrictions = household_profile.get('dislikes', []) + self._extract_dietary_restrictions(household_profile)
+        max_cooking_time = household_profile.get('max_cooking_time', 30)
+
+        # Try to find a cached recipe first (if caching is enabled)
+        if self.use_cache:
+            print(f"🔍 Searching cache for {cuisine} {meal_type}...")
+            cached_recipes = await self.search_cached_recipes(
+                cuisine=cuisine,
+                meal_type=meal_type,
+                max_time=max_cooking_time,
+                dietary_restrictions=dietary_restrictions,
+                limit=5  # Get top 5 matches
+            )
+
+            if cached_recipes:
+                # Use the first matching recipe
+                recipe = cached_recipes[0]
+                print(f"✨ Using cached recipe: {recipe.get('name')}")
+
+                # TODO: Increment usage counter
+                # await self.increment_recipe_usage(recipe_id)
+
+                return recipe
+
+        # No cached recipe found, generate a new one
+        print(f"🎨 Generating new {cuisine} {meal_type} recipe...")
         requirements = {
             "meal_type": meal_type,
             "cuisine": cuisine,
-            "dietary_restrictions": household_profile.get('dislikes', []) +
-                                   self._extract_dietary_restrictions(household_profile),
-            "max_cooking_time": household_profile.get('max_cooking_time', 30),
+            "dietary_restrictions": dietary_restrictions,
+            "max_cooking_time": max_cooking_time,
             "skill_level": household_profile.get('cooking_skill', 'intermediate'),
             "servings": servings,
             "available_equipment": household_profile.get('kitchen_equipment', []),
@@ -199,7 +375,13 @@ class RecipeService:
             "special_requests": special_requirements or {}
         }
 
-        return await self.develop_recipe(requirements, household_profile)
+        recipe = await self.develop_recipe(requirements, household_profile)
+
+        # Save the generated recipe for future use
+        if self.use_cache and recipe:
+            await self.save_recipe_to_database(recipe)
+
+        return recipe
 
     async def develop_recipe(
         self,
