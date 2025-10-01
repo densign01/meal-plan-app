@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Option 3: Warm & Inviting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(to bottom, #fef3c7, #fff);
+        }
+        .warm-card {
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(251, 146, 60, 0.1), 0 2px 4px -1px rgba(251, 146, 60, 0.06);
+            transition: all 0.3s ease;
+        }
+        .warm-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(251, 146, 60, 0.15), 0 4px 6px -2px rgba(251, 146, 60, 0.1);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Warm Header -->
+    <div class="bg-gradient-to-r from-orange-500 to-amber-500">
+        <div class="max-w-7xl mx-auto px-6 py-5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-11 h-11 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
+                        <span class="text-2xl">🍳</span>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">Meal Plan</h1>
+                        <p class="text-xs text-orange-100">Your family's kitchen companion</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="bg-white/20 backdrop-blur px-4 py-2 rounded-xl">
+                        <span class="text-white text-sm font-medium">Daniel's Kitchen</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Friendly Welcome -->
+        <div class="warm-card rounded-3xl p-8 mb-8">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-3">
+                        Hey Daniel! What's cooking? 🧑‍🍳
+                    </h2>
+                    <p class="text-gray-600 text-lg">
+                        You've got 5 delicious meals planned for this week. Let's make it happen!
+                    </p>
+                </div>
+                <div class="bg-gradient-to-br from-orange-100 to-amber-100 rounded-2xl p-6 text-center">
+                    <div class="text-4xl font-bold text-orange-600 mb-1">5/7</div>
+                    <div class="text-sm text-orange-700 font-medium">Meals Ready</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- This Week Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-2xl font-bold text-gray-900">This Week's Delights</h3>
+                <div class="flex items-center space-x-3">
+                    <button class="text-orange-600 hover:text-orange-700 font-semibold text-sm">Edit</button>
+                    <button class="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 rounded-xl font-semibold text-sm hover:shadow-lg transition">
+                        + Add Meal
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4">
+                <!-- Monday -->
+                <div class="warm-card rounded-2xl p-5 cursor-pointer">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-orange-600 uppercase tracking-wide">Mon</span>
+                        <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                            <span class="text-sm">🍛</span>
+                        </div>
+                    </div>
+                    <h4 class="font-bold text-gray-900 text-sm mb-2 leading-tight">Chicken Tikka Masala</h4>
+                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                            </svg>
+                            45m
+                        </div>
+                        <span>•</span>
+                        <span class="text-orange-600">Indian</span>
+                    </div>
+                </div>
+
+                <!-- Tuesday -->
+                <div class="warm-card rounded-2xl p-5 cursor-pointer">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-orange-600 uppercase tracking-wide">Tue</span>
+                        <div class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                            <span class="text-sm">🌮</span>
+                        </div>
+                    </div>
+                    <h4 class="font-bold text-gray-900 text-sm mb-2 leading-tight">Beef Tacos</h4>
+                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                            </svg>
+                            30m
+                        </div>
+                        <span>•</span>
+                        <span class="text-orange-600">Mexican</span>
+                    </div>
+                </div>
+
+                <!-- Wednesday -->
+                <div class="warm-card rounded-2xl p-5 cursor-pointer">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-orange-600 uppercase tracking-wide">Wed</span>
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <span class="text-sm">🥬</span>
+                        </div>
+                    </div>
+                    <h4 class="font-bold text-gray-900 text-sm mb-2 leading-tight">Veggie Stir-Fry</h4>
+                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                            </svg>
+                            25m
+                        </div>
+                        <span>•</span>
+                        <span class="text-green-600">Vegetarian</span>
+                    </div>
+                </div>
+
+                <!-- Thursday -->
+                <div class="warm-card rounded-2xl p-5 cursor-pointer">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-orange-600 uppercase tracking-wide">Thu</span>
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-sm">🥩</span>
+                        </div>
+                    </div>
+                    <h4 class="font-bold text-gray-900 text-sm mb-2 leading-tight">Pork Schnitzel</h4>
+                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                            </svg>
+                            40m
+                        </div>
+                        <span>•</span>
+                        <span class="text-orange-600">German</span>
+                    </div>
+                </div>
+
+                <!-- Friday -->
+                <div class="warm-card rounded-2xl p-5 cursor-pointer">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-orange-600 uppercase tracking-wide">Fri</span>
+                        <div class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
+                            <span class="text-sm">🍤</span>
+                        </div>
+                    </div>
+                    <h4 class="font-bold text-gray-900 text-sm mb-2 leading-tight">Shrimp Pad Thai</h4>
+                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                            </svg>
+                            35m
+                        </div>
+                        <span>•</span>
+                        <span class="text-orange-600">Thai</span>
+                    </div>
+                </div>
+
+                <!-- Saturday -->
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Sat</span>
+                        <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                            <span class="text-sm">🍽️</span>
+                        </div>
+                    </div>
+                    <h4 class="font-semibold text-gray-500 text-sm mb-2">Dining Out</h4>
+                    <div class="text-xs text-gray-400">Enjoy your evening!</div>
+                </div>
+
+                <!-- Sunday -->
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Sun</span>
+                        <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                            <span class="text-sm">☀️</span>
+                        </div>
+                    </div>
+                    <h4 class="font-semibold text-gray-500 text-sm mb-2">Rest Day</h4>
+                    <div class="text-xs text-gray-400">Take it easy</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="warm-card rounded-3xl p-8">
+                <div class="flex items-start space-x-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-orange-400 to-amber-400 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <span class="text-3xl">📋</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-gray-900 text-lg mb-2">Grocery List Ready</h3>
+                        <p class="text-gray-600 text-sm mb-4">23 items ready to shop for this week's meals</p>
+                        <button class="text-orange-600 hover:text-orange-700 font-semibold text-sm flex items-center">
+                            View List
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="warm-card rounded-3xl p-8">
+                <div class="flex items-start space-x-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <span class="text-3xl">✨</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-gray-900 text-lg mb-2">Plan Next Week</h3>
+                        <p class="text-gray-600 text-sm mb-4">Ready to plan your next week of amazing meals?</p>
+                        <button class="text-purple-600 hover:text-purple-700 font-semibold text-sm flex items-center">
+                            Start Planning
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

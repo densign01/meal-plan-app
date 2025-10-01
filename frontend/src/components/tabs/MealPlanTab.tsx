@@ -131,17 +131,6 @@ export default function MealPlanTab() {
   }
 
 
-  const handleRemoveRecipe = (day: string) => {
-    const updatedMeals = { ...workingMealPlan.meals }
-    delete updatedMeals[day]
-
-    const updatedMealPlan = {
-      ...workingMealPlan,
-      meals: updatedMeals
-    }
-
-    setCurrentMealPlan(updatedMealPlan)
-  }
 
   const formatDate = (dateString: string) => {
     try {

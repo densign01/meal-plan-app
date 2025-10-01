@@ -4,7 +4,7 @@ import { AuthProvider } from './context/AuthContext'
 import TabNavigation from './components/TabNavigation'
 import TabContent from './components/TabContent'
 import { useState } from 'react'
-import { LogIn, LogOut, User } from 'lucide-react'
+import { LogOut, User } from 'lucide-react'
 import { useAuth } from './context/AuthContext'
 import AuthModal from './components/AuthModal'
 

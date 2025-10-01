@@ -94,7 +94,7 @@ function WelcomeSection({ onStartMealPlanning }: { onStartMealPlanning: () => vo
       {isOnboardingComplete && currentMealPlan && (
         <div className="flex items-center space-x-6 text-sm text-gray-600">
           <div>
-            <span className="font-medium text-gray-900">{currentMealPlan.meals?.length || 0}</span> meals planned
+            <span className="font-medium text-gray-900">{Object.keys(currentMealPlan.meals || {}).length}</span> meals planned
           </div>
           <div className="text-gray-300">•</div>
           <div>

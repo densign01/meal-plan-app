@@ -8,7 +8,6 @@ interface TabData {
 const tabs: TabData[] = [
   { id: 'home', label: 'Home' },
   { id: 'meal-plan', label: 'Meal Plan' },
-  { id: 'chat', label: 'Chat' },
   { id: 'profile', label: 'Profile' }
 ]
 

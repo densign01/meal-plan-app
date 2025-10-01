@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 2: Chat Interface - Minimal & Clean</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-white">
+
+  <!-- Header -->
+  <header class="border-b border-gray-200 bg-white">
+    <div class="max-w-6xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900">Meal Planner</h1>
+        <nav class="flex items-center space-x-8">
+          <a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Home</a>
+          <a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Meal Plan</a>
+          <a href="#" class="text-sm text-gray-900 font-medium border-b-2 border-gray-900 pb-1">Chat</a>
+          <a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Profile</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Chat Interface -->
+  <div class="max-w-4xl mx-auto px-6 py-8 h-[calc(100vh-80px)] flex flex-col">
+
+    <!-- Chat Messages Area -->
+    <div class="flex-1 overflow-y-auto space-y-6 mb-6">
+
+      <!-- System Message -->
+      <div class="flex justify-center">
+        <div class="text-xs text-gray-500 bg-gray-50 px-4 py-2 rounded-full">
+          Today, 2:34 PM
+        </div>
+      </div>
+
+      <!-- User Message -->
+      <div class="flex justify-end">
+        <div class="max-w-[70%]">
+          <div class="bg-gray-900 text-white px-5 py-3 rounded-2xl rounded-tr-sm">
+            <p class="text-sm leading-relaxed">I need a meal plan for this week. I have chicken, pasta, and lots of vegetables in my fridge.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assistant Message -->
+      <div class="flex justify-start">
+        <div class="max-w-[70%]">
+          <div class="bg-gray-100 text-gray-900 px-5 py-3 rounded-2xl rounded-tl-sm">
+            <p class="text-sm leading-relaxed mb-3">I'll create a meal plan for you using those ingredients. Let me ask a few questions first:</p>
+            <ul class="text-sm leading-relaxed space-y-2 ml-4">
+              <li class="list-disc">How many people are you cooking for?</li>
+              <li class="list-disc">Do you have any dietary restrictions?</li>
+              <li class="list-disc">What's your preferred cooking time per meal?</li>
+            </ul>
+          </div>
+          <div class="text-xs text-gray-500 mt-1 ml-1">2:34 PM</div>
+        </div>
+      </div>
+
+      <!-- User Message -->
+      <div class="flex justify-end">
+        <div class="max-w-[70%]">
+          <div class="bg-gray-900 text-white px-5 py-3 rounded-2xl rounded-tr-sm">
+            <p class="text-sm leading-relaxed">Cooking for 2 people. No dietary restrictions. I prefer meals that take 30-45 minutes to prepare.</p>
+          </div>
+          <div class="text-xs text-gray-500 mt-1 mr-1 text-right">2:35 PM</div>
+        </div>
+      </div>
+
+      <!-- Assistant Message with Loading -->
+      <div class="flex justify-start">
+        <div class="max-w-[70%]">
+          <div class="bg-gray-100 text-gray-900 px-5 py-3 rounded-2xl rounded-tl-sm">
+            <p class="text-sm leading-relaxed mb-4">Perfect! I'm generating a 7-day meal plan for you now.</p>
+            <div class="border border-gray-200 rounded-lg p-3 bg-white">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-gray-700">Generating recipes...</span>
+                <span class="text-xs text-gray-500">4/7</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="bg-gray-900 h-1.5 rounded-full" style="width: 57%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="text-xs text-gray-500 mt-1 ml-1">2:36 PM</div>
+        </div>
+      </div>
+
+      <!-- User Message -->
+      <div class="flex justify-end">
+        <div class="max-w-[70%]">
+          <div class="bg-gray-900 text-white px-5 py-3 rounded-2xl rounded-tr-sm">
+            <p class="text-sm leading-relaxed">Great! Can you make sure to include at least one pasta dish?</p>
+          </div>
+          <div class="text-xs text-gray-500 mt-1 mr-1 text-right">2:36 PM</div>
+        </div>
+      </div>
+
+      <!-- Assistant Message with Recipe Card -->
+      <div class="flex justify-start">
+        <div class="max-w-[70%]">
+          <div class="bg-gray-100 text-gray-900 px-5 py-3 rounded-2xl rounded-tl-sm">
+            <p class="text-sm leading-relaxed mb-3">Your meal plan is ready! Here's your week:</p>
+
+            <!-- Embedded Recipe Card -->
+            <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mt-3">
+              <div class="p-4">
+                <div class="flex items-start justify-between mb-2">
+                  <div>
+                    <div class="text-xs font-medium text-gray-500 mb-1">Monday Dinner</div>
+                    <h3 class="font-semibold text-gray-900">Lemon Herb Roasted Chicken</h3>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-xs text-gray-600">45 min</div>
+                  </div>
+                </div>
+                <p class="text-xs text-gray-600 leading-relaxed">Juicy roasted chicken with fresh herbs, lemon, and roasted vegetables</p>
+              </div>
+              <div class="border-t border-gray-200 px-4 py-2 bg-gray-50">
+                <button class="text-xs font-medium text-gray-900 hover:text-gray-700">View Full Recipe →</button>
+              </div>
+            </div>
+
+            <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mt-2">
+              <div class="p-4">
+                <div class="flex items-start justify-between mb-2">
+                  <div>
+                    <div class="text-xs font-medium text-gray-500 mb-1">Tuesday Dinner</div>
+                    <h3 class="font-semibold text-gray-900">Creamy Garlic Parmesan Pasta</h3>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-xs text-gray-600">30 min</div>
+                  </div>
+                </div>
+                <p class="text-xs text-gray-600 leading-relaxed">Rich and creamy pasta with fresh garlic, parmesan, and herbs</p>
+              </div>
+              <div class="border-t border-gray-200 px-4 py-2 bg-gray-50">
+                <button class="text-xs font-medium text-gray-900 hover:text-gray-700">View Full Recipe →</button>
+              </div>
+            </div>
+
+            <div class="mt-3 pt-3 border-t border-gray-200">
+              <button class="text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors">View Complete Meal Plan →</button>
+            </div>
+          </div>
+          <div class="text-xs text-gray-500 mt-1 ml-1">2:37 PM</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Input Area -->
+    <div class="border-t border-gray-200 pt-4">
+      <div class="flex items-end space-x-3">
+        <div class="flex-1">
+          <textarea
+            rows="1"
+            placeholder="Ask about recipes, ingredients, or dietary preferences..."
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 text-sm"
+          ></textarea>
+        </div>
+        <button class="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0">
+          <span class="text-sm font-medium">Send</span>
+        </button>
+      </div>
+      <div class="flex items-center justify-between mt-2 px-1">
+        <div class="text-xs text-gray-500">Press Enter to send, Shift+Enter for new line</div>
+        <div class="text-xs text-gray-400">0/2000</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
