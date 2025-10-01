@@ -23,17 +23,17 @@ function QuickAction({ icon: Icon, title, description, onClick, disabled }: Quic
       onClick={onClick}
       disabled={disabled}
       className={`
-        p-4 rounded-lg border text-left transition-colors w-full
+        p-6 rounded-lg border text-left transition-all w-full
         ${disabled
           ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
-          : 'bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+          : 'bg-white border-gray-200 hover:border-gray-900 hover:shadow-sm'
         }
       `}
     >
       <div className="flex items-start space-x-3">
-        <Icon className={`w-5 h-5 mt-1 ${disabled ? 'text-gray-400' : 'text-blue-600'}`} />
+        <Icon className={`w-5 h-5 mt-1 ${disabled ? 'text-gray-400' : 'text-gray-900'}`} />
         <div>
-          <h3 className={`font-medium ${disabled ? 'text-gray-400' : 'text-gray-900'}`}>
+          <h3 className={`font-semibold ${disabled ? 'text-gray-400' : 'text-gray-900'}`}>
             {title}
           </h3>
           <p className={`text-sm mt-1 ${disabled ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -73,22 +73,35 @@ function WelcomeSection({ onStartMealPlanning }: { onStartMealPlanning: () => vo
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Welcome Message */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">
           {isOnboardingComplete
             ? `Welcome back${householdProfile?.members[0]?.name ? `, ${householdProfile.members[0].name}` : ''}!`
-            : 'Welcome to Meal Plan Assistant'
+            : 'Welcome to Meal Planner'
           }
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600 text-lg">
           {isOnboardingComplete
             ? 'What would you like to do today?'
             : 'Let\'s get you set up with personalized meal planning'
           }
         </p>
       </div>
+
+      {/* Stats */}
+      {isOnboardingComplete && currentMealPlan && (
+        <div className="flex items-center space-x-6 text-sm text-gray-600">
+          <div>
+            <span className="font-medium text-gray-900">{currentMealPlan.meals?.length || 0}</span> meals planned
+          </div>
+          <div className="text-gray-300">•</div>
+          <div>
+            <span className="font-medium text-gray-900">{householdProfile?.members?.length || 0}</span> household members
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       {isOnboardingComplete && (
@@ -218,12 +231,12 @@ export default function HomeTab() {
 
         {/* Chat Section - conditional */}
         {showChat && (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
             <div className="flex items-center space-x-2 mb-4">
               {chatMode === 'onboarding-complete' ? (
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-5 h-5 text-gray-900" />
               ) : (
-                <MessageCircle className="w-5 h-5 text-blue-600" />
+                <MessageCircle className="w-5 h-5 text-gray-900" />
               )}
               <h3 className="text-lg font-semibold text-gray-900">
                 {chatMode === 'onboarding' && 'Profile Setup'}
@@ -242,7 +255,7 @@ export default function HomeTab() {
 
             {chatMode === 'onboarding-complete' && (
               <div className="text-center py-8">
-                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+                <CheckCircle className="w-16 h-16 text-gray-900 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   Thanks! Your profile is all set up.
                 </h3>
@@ -252,13 +265,13 @@ export default function HomeTab() {
                 <div className="space-y-3">
                   <button
                     onClick={handleStartMealPlanning}
-                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    className="w-full px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
                   >
                     Yes, let's create a meal plan!
                   </button>
                   <button
                     onClick={handleSkipMealPlanning}
-                    className="w-full px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
+                    className="w-full px-6 py-3 text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     Maybe later
                   </button>
@@ -283,7 +296,7 @@ export default function HomeTab() {
                       </p>
                       <button
                         onClick={handleReset}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
                       >
                         Start Over
                       </button>
@@ -300,7 +313,7 @@ export default function HomeTab() {
                 <p>Meal modification chat coming soon!</p>
                 <button
                   onClick={() => setShowChat(false)}
-                  className="mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                  className="mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
                 >
                   Close Chat
                 </button>
@@ -314,7 +327,7 @@ export default function HomeTab() {
           <div className="text-center">
             <button
               onClick={() => handleStartNewChat('meal-modification')}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="inline-flex items-center space-x-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
               <MessageCircle className="w-4 h-4" />
               <span>Chat with Assistant</span>

@@ -33,25 +33,24 @@ function HeaderAuth() {
       <div className="flex items-center space-x-2">
         {user ? (
           <>
-            <div className="flex items-center space-x-2 text-gray-700">
+            <div className="flex items-center space-x-2 text-gray-600">
               <User className="w-4 h-4" />
               <span className="text-sm hidden sm:inline">{user.email}</span>
             </div>
             <button
               onClick={handleSignOut}
-              className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
-              <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Sign Out</span>
+              <LogOut className="w-4 h-4 sm:hidden" />
             </button>
           </>
         ) : (
           <button
             onClick={() => setShowAuthModal(true)}
-            className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md transition-colors"
+            className="px-4 py-2 text-sm bg-gray-900 text-white hover:bg-gray-800 rounded-lg transition-colors"
           >
-            <LogIn className="w-4 h-4" />
-            <span>Sign In</span>
+            Sign In
           </button>
         )}
       </div>
@@ -73,26 +72,22 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppContextProvider>
-          <div className="min-h-screen bg-gray-50 pb-20">
-          <header className="bg-white shadow-sm border-b">
-            <div className="max-w-6xl mx-auto px-4 py-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Meal Plan Assistant</h1>
-                  <p className="text-gray-600 mt-1">
-                    AI-powered meal planning for busy families
-                  </p>
+          <div className="min-h-screen bg-white">
+            <header className="border-b border-gray-200 bg-white">
+              <div className="max-w-6xl mx-auto px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <h1 className="text-2xl font-bold text-gray-900">Meal Planner</h1>
+                  <div className="flex items-center space-x-8">
+                    <TabNavigation />
+                    <HeaderAuth />
+                  </div>
                 </div>
-                <HeaderAuth />
               </div>
-            </div>
-          </header>
+            </header>
 
-          <TabNavigation />
-
-          <main className="max-w-6xl mx-auto px-4 py-6">
-            <TabContent />
-          </main>
+            <main className="max-w-6xl mx-auto px-6 py-8">
+              <TabContent />
+            </main>
           </div>
         </AppContextProvider>
       </AuthProvider>

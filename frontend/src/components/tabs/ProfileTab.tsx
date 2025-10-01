@@ -53,7 +53,7 @@ export default function ProfileTab() {
           <p className="text-gray-600 mb-6">Complete your household profile setup to view and manage your profile.</p>
           <button
             onClick={() => setActiveTab('home')}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Go to Home</span>
@@ -165,12 +165,12 @@ export default function ProfileTab() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Household Profile</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Household Profile</h2>
           <p className="text-gray-600">Manage your household preferences and members</p>
         </div>
         <div className="flex items-center space-x-3">
           {user && (
-            <div className="flex items-center space-x-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
               <User className="w-4 h-4" />
               <span>{user.email}</span>
             </div>
@@ -178,7 +178,7 @@ export default function ProfileTab() {
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
               <Edit3 className="w-4 h-4" />
               <span>Edit Profile</span>
@@ -187,7 +187,7 @@ export default function ProfileTab() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleCancel}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <X className="w-4 h-4" />
                 <span>Cancel</span>
@@ -195,7 +195,7 @@ export default function ProfileTab() {
               <button
                 onClick={handleSave}
                 disabled={updateProfileMutation.isPending}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
                 <span>{updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}</span>
@@ -219,7 +219,7 @@ export default function ProfileTab() {
             {isEditing && (
               <button
                 onClick={addMember}
-                className="flex items-center space-x-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                className="flex items-center space-x-1 px-3 py-1 text-gray-600 hover:text-gray-900 transition-colors text-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add</span>
@@ -278,7 +278,7 @@ export default function ProfileTab() {
                       <p className="font-medium text-gray-900">{member.name}</p>
                       {member.age && <p className="text-sm text-gray-600">{member.age} years old</p>}
                       {member.dietary_restrictions && member.dietary_restrictions.length > 0 && (
-                        <p className="text-sm text-blue-600">
+                        <p className="text-sm text-gray-600">
                           Dietary: {member.dietary_restrictions.join(', ')}
                         </p>
                       )}
@@ -300,12 +300,12 @@ export default function ProfileTab() {
               <p className="text-sm font-medium text-gray-700 mb-2">Favorite Cuisines</p>
               <div className="flex flex-wrap gap-2 mb-2">
                 {profile.favorite_cuisines.map((cuisine, index) => (
-                  <span key={index} className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full flex items-center space-x-1">
+                  <span key={index} className="px-3 py-1 border border-gray-200 text-gray-900 text-sm rounded-lg flex items-center space-x-1">
                     <span>{cuisine}</span>
                     {isEditing && (
                       <button
                         onClick={() => removeCuisine(cuisine)}
-                        className="ml-1 text-green-600 hover:text-green-800"
+                        className="ml-1 text-gray-600 hover:text-gray-900"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -334,12 +334,12 @@ export default function ProfileTab() {
               <p className="text-sm font-medium text-gray-700 mb-2">Dislikes</p>
               <div className="flex flex-wrap gap-2 mb-2">
                 {profile.dislikes.map((dislike, index) => (
-                  <span key={index} className="px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full flex items-center space-x-1">
+                  <span key={index} className="px-3 py-1 border border-gray-200 text-gray-900 text-sm rounded-lg flex items-center space-x-1">
                     <span>{dislike}</span>
                     {isEditing && (
                       <button
                         onClick={() => removeDislike(dislike)}
-                        className="ml-1 text-red-600 hover:text-red-800"
+                        className="ml-1 text-gray-600 hover:text-gray-900"
                       >
                         <X className="w-3 h-3" />
                       </button>

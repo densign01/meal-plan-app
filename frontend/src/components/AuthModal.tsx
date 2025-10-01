@@ -84,7 +84,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 setEmail('')
                 onClose()
               }}
-              className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700"
+              className="w-full bg-gray-900 text-white py-2 px-4 rounded-lg hover:bg-gray-800"
             >
               Close
             </button>
@@ -92,7 +92,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         ) : (
           <>
             <div className="mb-6">
-              <div className="flex items-center space-x-2 text-blue-600 mb-2">
+              <div className="flex items-center space-x-2 text-gray-900 mb-2">
                 <User className="w-5 h-5" />
                 <span className="font-medium">Save Your Profile</span>
               </div>
@@ -151,7 +151,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-gray-900 text-white py-2 px-4 rounded-lg hover:bg-gray-800 focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Loading...' : (useMagicLink ? 'Send Magic Link' : (isSignUp ? 'Create Account' : 'Sign In'))}
               </button>
@@ -164,7 +164,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                     setUseMagicLink(!useMagicLink)
                     setError(null)
                   }}
-                  className="text-blue-600 hover:text-blue-700 text-sm"
+                  className="text-gray-600 hover:text-gray-900 text-sm"
                 >
                   {useMagicLink ? '← Back to password sign in' : '✨ Sign in with magic link instead'}
                 </button>
@@ -174,7 +174,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 <div className="text-center">
                   <button
                     onClick={() => setIsSignUp(!isSignUp)}
-                    className="text-blue-600 hover:text-blue-700 text-sm"
+                    className="text-gray-600 hover:text-gray-900 text-sm"
                   >
                     {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                   </button>

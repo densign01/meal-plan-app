@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useAppContext } from '../../context/AppContext'
-import { Calendar, ArrowLeft, Clock, Users, ChefHat, Edit2, Trash2 } from 'lucide-react'
+import { Calendar, ArrowLeft, Clock, Users } from 'lucide-react'
 import type { Recipe } from '../../types'
 
 const DAYS = [
@@ -13,126 +13,71 @@ const DAYS = [
   { key: 'saturday', label: 'Saturday' }
 ]
 
-interface RecipeCardProps {
-  recipe: Recipe
-  onEdit?: () => void
-  onRemove?: () => void
-}
-
-function RecipeCard({ recipe, onEdit, onRemove }: RecipeCardProps) {
-  const totalTime = recipe.prep_time + recipe.cook_time
-
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 transition-all hover:shadow-md">
-      <div className="flex justify-between items-start mb-2">
-        <h4 className="font-semibold text-gray-900 text-sm leading-tight">{recipe.name}</h4>
-        <div className="flex space-x-1 ml-2">
-          {onEdit && (
-            <button
-              onClick={onEdit}
-              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-            >
-              <Edit2 className="w-3 h-3" />
-            </button>
-          )}
-          {onRemove && (
-            <button
-              onClick={onRemove}
-              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-3 text-xs text-gray-600 mb-2">
-        <div className="flex items-center space-x-1">
-          <Clock className="w-3 h-3" />
-          <span>{totalTime}min</span>
-        </div>
-      </div>
-
-      {recipe.dietary_tags && recipe.dietary_tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {recipe.dietary_tags.slice(0, 2).map((tag) => (
-            <span key={tag} className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-              {tag}
-            </span>
-          ))}
-          {recipe.dietary_tags.length > 2 && (
-            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-              +{recipe.dietary_tags.length - 2}
-            </span>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-interface DayCardProps {
+interface MealListItemProps {
   day: { key: string; label: string }
   recipe: Recipe | null
   onEditRecipe?: () => void
-  onRemoveRecipe?: () => void
+  date?: string
 }
 
-function DayCard({ day, recipe, onEditRecipe, onRemoveRecipe }: DayCardProps) {
+function MealListItem({ day, recipe, onEditRecipe, date }: MealListItemProps) {
   // Handle both old format (simple meal object) and new format (with recipe details)
   const mealData = recipe as any
   const isNoCooking = mealData?.type === 'no_cooking' || mealData?.name === 'Dining Out' || mealData?.name === 'No Cooking Planned'
   const hasDetailedRecipe = mealData?.recipe && mealData?.type === 'cooked_meal'
+  const actualRecipe = hasDetailedRecipe ? mealData.recipe : mealData
+
+  const totalTime = actualRecipe ? (actualRecipe.prep_time || 0) + (actualRecipe.cook_time || 0) : 0
 
   // Format date if available
   const formatDate = (dateString?: string) => {
     if (!dateString) return ''
     try {
-      const date = new Date(dateString)
-      return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })
+      const d = new Date(dateString)
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     } catch {
       return ''
     }
   }
 
   return (
-    <div className="border-2 border-gray-200 rounded-lg p-4 min-h-[200px] bg-gray-50">
-      <div className="flex flex-col mb-4">
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold text-gray-900">{day.label}</h3>
+    <div
+      onClick={!isNoCooking ? onEditRecipe : undefined}
+      className={`
+        py-4 border-b border-gray-200 last:border-b-0
+        ${!isNoCooking ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''}
+      `}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-baseline space-x-3 mb-1">
+            <h3 className="font-medium text-gray-900">{day.label}</h3>
+            {date && (
+              <span className="text-xs text-gray-500">{formatDate(date)}</span>
+            )}
+          </div>
+          {recipe ? (
+            isNoCooking ? (
+              <p className="text-sm text-gray-600">{mealData.name}</p>
+            ) : (
+              <div>
+                <p className="text-sm text-gray-900">{actualRecipe.name || 'Meal planned'}</p>
+                {actualRecipe.description && (
+                  <p className="text-xs text-gray-600 mt-1 line-clamp-1">{actualRecipe.description}</p>
+                )}
+              </div>
+            )
+          ) : (
+            <p className="text-sm text-gray-500 italic">No meal planned</p>
+          )}
         </div>
-        {mealData?.date && (
-          <p className="text-sm text-gray-500 mt-1">{formatDate(mealData.date)}</p>
+        {recipe && !isNoCooking && totalTime > 0 && (
+          <div className="flex items-center space-x-1 text-xs text-gray-600 ml-4">
+            <Clock className="w-3 h-3" />
+            <span>{totalTime} min</span>
+          </div>
         )}
       </div>
-
-      {recipe ? (
-        isNoCooking ? (
-          <div className="flex flex-col items-center justify-center h-32 text-gray-500">
-            <Calendar className="w-8 h-8 mb-2" />
-            <p className="text-sm font-medium">{mealData.name}</p>
-          </div>
-        ) : hasDetailedRecipe ? (
-          <RecipeCard
-            recipe={mealData.recipe}
-            onEdit={onEditRecipe}
-            onRemove={onRemoveRecipe}
-          />
-        ) : (
-          <div
-            onClick={onEditRecipe}
-            className="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-all"
-          >
-            <h4 className="font-semibold text-gray-900 text-sm">{mealData.name || 'Meal planned'}</h4>
-            <p className="text-xs text-gray-500 mt-1">Click to view recipe</p>
-          </div>
-        )
-      ) : (
-        <div className="flex flex-col items-center justify-center h-32 text-gray-400">
-          <ChefHat className="w-8 h-8 mb-2" />
-          <p className="text-sm">No recipe assigned</p>
-        </div>
-      )}
     </div>
   )
 }
@@ -156,7 +101,7 @@ export default function MealPlanTab() {
           <p className="text-gray-600 mb-6">Complete your household profile setup to access your personalized meal planning features.</p>
           <button
             onClick={() => setActiveTab('home')}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Go to Home</span>
@@ -175,7 +120,7 @@ export default function MealPlanTab() {
           <p className="text-gray-600 mb-6">Create your first meal plan by completing the weekly planning process.</p>
           <button
             onClick={() => setActiveTab('home')}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Go to Home</span>
@@ -219,39 +164,29 @@ export default function MealPlanTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Weekly Meal Plan</h1>
           <p className="text-gray-600">Week of {formatDate(currentMealPlan.week_start_date)}</p>
-          <p className="text-sm text-gray-500 mt-1">Your personalized meal plan for the week</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={handleClearMealPlan}
-            className="text-sm text-red-600 hover:text-red-700 underline"
-          >
-            Clear meal plan
-          </button>
-          <button
-            onClick={() => setActiveTab('home')}
-            className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
-          </button>
-        </div>
+        <button
+          onClick={handleClearMealPlan}
+          className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          Clear meal plan
+        </button>
       </div>
 
-      {/* Weekly Calendar Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-4">
+      {/* Meal List */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         {DAYS.map((day) => (
-          <DayCard
+          <MealListItem
             key={day.key}
             day={day}
             recipe={workingMealPlan.meals[day.key] || null}
-            onRemoveRecipe={() => handleRemoveRecipe(day.key)}
+            date={(workingMealPlan.meals[day.key] as any)?.date}
             onEditRecipe={() => {
               const mealData = workingMealPlan.meals[day.key] as any
               if (mealData?.recipe) {
@@ -335,10 +270,10 @@ export default function MealPlanTab() {
                 {editingRecipe.recipe.ingredients && editingRecipe.recipe.ingredients.length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Ingredients</h3>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-gray-700">
+                    <ul className="space-y-2 text-gray-700">
                       {editingRecipe.recipe.ingredients.map((ingredient, index) => (
                         <li key={index} className="flex items-start">
-                          <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                          <span className="inline-block w-1.5 h-1.5 bg-gray-900 rounded-full mt-2 mr-3 flex-shrink-0"></span>
                           <span>{ingredient}</span>
                         </li>
                       ))}
@@ -353,7 +288,7 @@ export default function MealPlanTab() {
                     <ol className="space-y-3">
                       {editingRecipe.recipe.instructions.map((instruction, index) => (
                         <li key={index} className="flex items-start text-gray-700">
-                          <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mr-3 flex-shrink-0 mt-0.5">
+                          <span className="inline-flex items-center justify-center w-6 h-6 border border-gray-900 text-gray-900 rounded-full text-sm font-medium mr-3 flex-shrink-0 mt-0.5">
                             {index + 1}
                           </span>
                           <span className="flex-1">{instruction}</span>
@@ -365,11 +300,11 @@ export default function MealPlanTab() {
 
                 {/* Equipment Needed */}
                 {editingRecipe.recipe.equipment_needed && editingRecipe.recipe.equipment_needed.length > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="border-t border-gray-200 pt-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Equipment Needed</h3>
                     <div className="flex flex-wrap gap-2">
                       {editingRecipe.recipe.equipment_needed.map((equipment, index) => (
-                        <span key={index} className="px-3 py-1 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm">
+                        <span key={index} className="px-3 py-1 border border-gray-200 text-gray-700 rounded-lg text-sm">
                           {equipment}
                         </span>
                       ))}
@@ -379,12 +314,12 @@ export default function MealPlanTab() {
 
                 {/* Tips */}
                 {editingRecipe.recipe.tips && editingRecipe.recipe.tips.length > 0 && (
-                  <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                  <div className="border-t border-gray-200 pt-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Tips & Notes</h3>
                     <ul className="space-y-2">
                       {editingRecipe.recipe.tips.map((tip, index) => (
                         <li key={index} className="flex items-start text-gray-700">
-                          <span className="text-amber-600 mr-2">💡</span>
+                          <span className="mr-2">•</span>
                           <span>{tip}</span>
                         </li>
                       ))}
@@ -394,23 +329,23 @@ export default function MealPlanTab() {
 
                 {/* Nutrition Information */}
                 {editingRecipe.recipe.nutrition_per_serving && (
-                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <div className="border-t border-gray-200 pt-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Nutrition Per Serving</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-blue-600">{editingRecipe.recipe.nutrition_per_serving.calories}</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      <div>
+                        <p className="text-2xl font-bold text-gray-900">{editingRecipe.recipe.nutrition_per_serving.calories}</p>
                         <p className="text-sm text-gray-600">Calories</p>
                       </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-blue-600">{editingRecipe.recipe.nutrition_per_serving.protein}</p>
+                      <div>
+                        <p className="text-2xl font-bold text-gray-900">{editingRecipe.recipe.nutrition_per_serving.protein}</p>
                         <p className="text-sm text-gray-600">Protein</p>
                       </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-blue-600">{editingRecipe.recipe.nutrition_per_serving.carbs}</p>
+                      <div>
+                        <p className="text-2xl font-bold text-gray-900">{editingRecipe.recipe.nutrition_per_serving.carbs}</p>
                         <p className="text-sm text-gray-600">Carbs</p>
                       </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-blue-600">{editingRecipe.recipe.nutrition_per_serving.fat}</p>
+                      <div>
+                        <p className="text-2xl font-bold text-gray-900">{editingRecipe.recipe.nutrition_per_serving.fat}</p>
                         <p className="text-sm text-gray-600">Fat</p>
                       </div>
                     </div>
@@ -422,7 +357,7 @@ export default function MealPlanTab() {
               <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
                 <button
                   onClick={() => setEditingRecipe(null)}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
                 >
                   Close
                 </button>
