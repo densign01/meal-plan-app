@@ -9,7 +9,9 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = localStorage.getItem(key)
-      return item ? JSON.parse(item) : initialValue
+      const value = item ? JSON.parse(item) : initialValue
+      console.log(`📦 useLocalStorage [${key}]: Loading from localStorage`, value)
+      return value
     } catch (error) {
       console.warn(`useLocalStorage: Failed to read ${key} from localStorage`, error)
       return initialValue
@@ -20,8 +22,10 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
   useEffect(() => {
     try {
       if (storedValue === null || storedValue === undefined) {
+        console.log(`📦 useLocalStorage [${key}]: Removing from localStorage`)
         localStorage.removeItem(key)
       } else {
+        console.log(`📦 useLocalStorage [${key}]: Saving to localStorage`, storedValue)
         localStorage.setItem(key, JSON.stringify(storedValue))
       }
     } catch (error) {
