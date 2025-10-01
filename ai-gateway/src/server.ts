@@ -88,12 +88,25 @@ fastify.post('/v1/chat/completions', async (request, reply) => {
       throw new Error(`Unsupported provider: ${provider}`);
     })();
 
-    const result = await generateText({
+    // Build the generateText options
+    const generateOptions: any = {
       model: resolvedModel,
       messages: coreMessages,
-      maxOutputTokens: maxTokens,
-      temperature,
-    });
+    };
+
+    // Only add maxTokens if provided
+    if (maxTokens !== undefined) {
+      generateOptions.maxTokens = maxTokens;
+    }
+
+    // Only add temperature if provided AND if not using gpt-5
+    // gpt-5 models only support default temperature
+    const isGpt5Model = model.includes('gpt-5');
+    if (temperature !== undefined && !isGpt5Model) {
+      generateOptions.temperature = temperature;
+    }
+
+    const result = await generateText(generateOptions);
 
     return {
       message: {
