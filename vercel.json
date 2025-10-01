@@ -1,0 +1,14 @@
+{
+  "builds": [
+    {
+      "src": "ai-gateway/src/server.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "ai-gateway/src/server.ts"
+    }
+  ]
+}
