@@ -144,12 +144,19 @@ export default function WeeklyPlanningAgent({
     }
   })
 
-  // Start weekly planning when component mounts
+  // Start weekly planning when component mounts (only if no existing session)
   useEffect(() => {
     console.log('🎯 WeeklyPlanningAgent mounted with householdId:', householdId)
-    if (householdId) {
+    console.log('📦 Existing sessionId:', sessionId)
+    console.log('📦 Existing messages:', messages.length)
+
+    // Only start a new session if we don't have one and have no messages
+    if (householdId && !sessionId && messages.length === 0) {
+      console.log('🆕 Starting new weekly planning session')
       startMutation.mutate()
-    } else {
+    } else if (sessionId && messages.length > 0) {
+      console.log('♻️ Restoring existing session from localStorage')
+    } else if (!householdId) {
       console.error('❌ No householdId provided to WeeklyPlanningAgent')
     }
   }, [householdId])

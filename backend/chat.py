@@ -384,8 +384,8 @@ async def create_comprehensive_meal_plan(
         if current_weekday == 6:  # Today is Sunday
             week_start = today
         else:
-            # Days since last Sunday (Monday=1 day ago, Tuesday=2 days ago, etc.)
-            days_since_sunday = (current_weekday + 1) % 7
+            # Days since last Sunday (Monday=1 day, Tuesday=2 days, etc.)
+            days_since_sunday = current_weekday + 1
             week_start = today - timedelta(days=days_since_sunday)
 
         week_start_date = week_start.strftime("%Y-%m-%d")

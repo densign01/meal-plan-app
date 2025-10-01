@@ -44,7 +44,7 @@ function MealListItem({ day, recipe, onEditRecipe, date }: MealListItemProps) {
     <div
       onClick={!isNoCooking ? onEditRecipe : undefined}
       className={`
-        py-4 border-b border-gray-200 last:border-b-0
+        py-4 px-6 border-b border-gray-200 last:border-b-0
         ${!isNoCooking ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''}
       `}
     >

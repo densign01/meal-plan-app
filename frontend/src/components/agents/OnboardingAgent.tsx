@@ -74,9 +74,19 @@ export default function OnboardingAgent({ onComplete, onReset }: OnboardingAgent
     }
   })
 
-  // Start onboarding when component mounts
+  // Start onboarding when component mounts (only if no existing session)
   useEffect(() => {
-    startMutation.mutate()
+    console.log('🎯 OnboardingAgent mounted')
+    console.log('📦 Existing sessionId:', sessionId)
+    console.log('📦 Existing messages:', messages.length)
+
+    // Only start a new session if we don't have one and have no messages
+    if (!sessionId && messages.length === 0) {
+      console.log('🆕 Starting new onboarding session')
+      startMutation.mutate()
+    } else if (sessionId && messages.length > 0) {
+      console.log('♻️ Restoring existing onboarding session from localStorage')
+    }
   }, [])
 
   const handleSendMessage = (message: string) => {
