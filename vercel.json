@@ -1,14 +1,12 @@
 {
-  "builds": [
+  "rewrites": [
     {
-      "src": "ai-gateway/src/server.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
+      "source": "/v1/chat/completions",
+      "destination": "/api/chat"
+    },
     {
-      "src": "/(.*)",
-      "dest": "ai-gateway/src/server.ts"
+      "source": "/health",
+      "destination": "/api/health"
     }
   ]
 }
