@@ -134,13 +134,16 @@ export default function HomeTab() {
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   // Handle returning user who logs in - skip onboarding if they already have a profile
+  // Only run this once on initial mount, not on every tab switch
   useEffect(() => {
-    if (user && isOnboardingComplete && householdId) {
+    // Don't hide chat if user is actively in weekly planning or any other chat mode
+    if (user && isOnboardingComplete && householdId && chatMode === 'onboarding') {
       // User just logged in and already has a profile, hide onboarding chat
       setShowChat(false)
       setChatMode('meal-modification') // Default to meal modification for returning users
     }
-  }, [user, isOnboardingComplete, householdId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Only run once on mount
 
   // Update showChat when onboarding completion status changes
   useEffect(() => {
