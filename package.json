@@ -1,15 +1,38 @@
 {
-  "name": "meal-plan-app",
-  "version": "1.0.0",
+  "name": "app",
+  "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
   "dependencies": {
-    "ai": "^5.0.59",
-    "@ai-sdk/openai": "^2.0.42",
-    "@ai-sdk/anthropic": "^2.0.22",
-    "@vercel/node": "^3.0.0"
+    "@ai-sdk/anthropic": "^2.0.56",
+    "@ai-sdk/openai": "^2.0.68",
+    "@supabase/supabase-js": "^2.83.0",
+    "@tanstack/react-query": "^5.90.10",
+    "ai": "^5.0.95",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.554.0",
+    "next": "^16.0.10",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "tailwind-merge": "^3.4.0",
+    "uuid": "^13.0.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@types/node": "^20.12.12",
-    "typescript": "^5.4.5"
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/uuid": "^10.0.0",
+    "baseline-browser-mapping": "^2.9.7",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }

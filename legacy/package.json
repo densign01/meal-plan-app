@@ -1,0 +1,15 @@
+{
+  "name": "meal-plan-app",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "ai": "^5.0.59",
+    "@ai-sdk/openai": "^2.0.42",
+    "@ai-sdk/anthropic": "^2.0.22",
+    "@vercel/node": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "typescript": "^5.4.5"
+  }
+}
